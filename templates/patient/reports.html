@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Medical Reports{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assess_health' }}" href="{{ url_for('patient.assess_health') }}">
+  <i class="bi bi-stars"></i> AI Health Check
+</a>
+<a class="nav-item {{ 'active' if request.endpoint in ['patient.predictions_page', 'patient.prediction_detail_page'] }}" href="{{ url_for('patient.predictions_page') }}">
+  <i class="bi bi-clipboard2-pulse"></i> My Assessments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.profile_page' }}" href="{{ url_for('patient.profile_page') }}">
+  <i class="bi bi-person-vcard"></i> Profile
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.health_page' }}" href="{{ url_for('patient.health_page') }}">
+  <i class="bi bi-heart-pulse"></i> Health Information
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assigned_doctor_page' }}" href="{{ url_for('patient.assigned_doctor_page') }}">
+  <i class="bi bi-person-badge"></i> My Doctor
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.appointments_page' }}" href="{{ url_for('patient.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.reports_page' }}" href="{{ url_for('patient.reports_page') }}">
+  <i class="bi bi-file-earmark-medical"></i> Medical Reports
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.change_password_page' }}" href="{{ url_for('patient.change_password_page') }}">
+  <i class="bi bi-shield-lock"></i> Change Password
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card content-card animate-in" style="--delay: 0">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-upload me-2 text-primary"></i>Upload a report</h5>
+        <p class="text-secondary small mb-4">
+          Share reports like blood tests, X-rays or prescriptions. Only your
+          authorised doctors can view them. Allowed: PDF, JPG, PNG (max 10 MB).
+        </p>
+
+        <form method="POST" action="{{ url_for('patient.reports_page') }}"
+              enctype="multipart/form-data" data-loading novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <div class="mb-3">
+            <label class="form-label" for="report_file">File</label>
+            <input type="file" class="form-control" id="report_file" name="report_file"
+                   accept=".pdf,.jpg,.jpeg,.png" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="description">Description <span class="text-secondary">(optional)</span></label>
+            <textarea class="form-control" id="description" name="description" rows="3"
+                      maxlength="255" placeholder="e.g. Blood test results, June 2026"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <span class="btn-label"><i class="bi bi-cloud-arrow-up me-1"></i>Upload report</span>
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card content-card animate-in" style="--delay: 1">
+      <div class="card-header">
+        <span class="fw-semibold"><i class="bi bi-folder2-open me-2"></i>Your reports</span>
+        <span class="badge text-bg-primary ms-2">{{ pagination.total }}</span>
+      </div>
+
+      {% if pagination.items %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Report</th>
+                <th>Type</th>
+                <th>Size</th>
+                <th>Uploaded</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for report in pagination.items %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold text-truncate" style="max-width: 260px">{{ report.original_filename }}</div>
+                    {% if report.description %}<div class="text-secondary small text-truncate" style="max-width: 260px">{{ report.description }}</div>{% endif %}
+                  </td>
+                  <td><span class="badge text-bg-secondary text-uppercase">{{ report.file_type }}</span></td>
+                  <td class="text-secondary">{{ report.size_display }}</td>
+                  <td class="text-secondary">{{ report.uploaded_at.strftime('%d %b %Y') }}</td>
+                  <td class="text-end text-nowrap">
+                    <a class="btn btn-sm btn-outline-primary me-1" href="{{ url_for('patient.download_report', report_id=report.id) }}" title="Download">
+                      <i class="bi bi-download"></i>
+                    </a>
+                    <form method="POST" action="{{ url_for('patient.delete_report', report_id=report.id) }}" class="d-inline" data-confirm="Delete this report permanently?">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete">
+                        <i class="bi bi-trash3"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if pagination.pages > 1 %}
+          <div class="card-footer">
+            <nav aria-label="Report pages">
+              <ul class="pagination pagination-sm mb-0 justify-content-center">
+                <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+                  <a class="page-link" href="{{ url_for('patient.reports_page', page=pagination.prev_num) }}">Previous</a>
+                </li>
+                {% for p in pagination.iter_pages() %}
+                  {% if p %}
+                    <li class="page-item {{ 'active' if p == pagination.page }}">
+                      <a class="page-link" href="{{ url_for('patient.reports_page', page=p) }}">{{ p }}</a>
+                    </li>
+                  {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                  {% endif %}
+                {% endfor %}
+                <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+                  <a class="page-link" href="{{ url_for('patient.reports_page', page=pagination.next_num) }}">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="card-body empty-state">
+          <i class="bi bi-file-earmark-medical"></i>
+          <p class="mb-0">No reports yet. Upload your first medical report to keep everything in one place.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

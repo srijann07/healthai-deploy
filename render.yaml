@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: healthai-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 4 wsgi:application
+    plan: free
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: STORAGE_PROVIDER
+        value: local
+      - key: DATABASE_URL
+        fromDatabase:
+          name: healthai-db
+          property: connectionString
+
+databases:
+  - name: healthai-db
+    plan: free
+    databaseName: healthai
+    user: healthai_user

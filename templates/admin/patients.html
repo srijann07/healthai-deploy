@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Patients{% endblock %}
+
+{% block sidebar_links %}{% include "admin/_sidebar.html" %}{% endblock %}
+
+{% block content %}
+<div class="card content-card animate-in" style="--delay: 0">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+      <h5 class="card-title mb-0"><i class="bi bi-people me-2 text-primary"></i>All patients</h5>
+      <span class="text-secondary small">{{ pagination.total }} patient{{ '' if pagination.total == 1 else 's' }}</span>
+    </div>
+
+    <form method="GET" action="{{ url_for('admin.patients_page') }}" class="row g-2 mb-3">
+      <div class="col-md-4">
+        <input type="text" class="form-control" name="q" value="{{ search }}" placeholder="Search by name or email…">
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" name="risk">
+          <option value="">All risk levels</option>
+          {% for level in risk_levels %}
+            <option value="{{ level }}" {{ 'selected' if risk == level }}>{{ level }} risk</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" name="doctor">
+          <option value="">Any doctor</option>
+          <option value="none" {{ 'selected' if doctor_filter == 'none' }}>Unassigned</option>
+          {% for doctor in doctors %}
+            <option value="{{ doctor.id }}" {{ 'selected' if doctor_filter == doctor.id|string }}>
+              Dr. {{ doctor.user.full_name }} — {{ doctor.specialization }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Filter</button>
+      </div>
+    </form>
+
+    {% if pagination and pagination.items %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Age / gender</th>
+              <th>Latest risk</th>
+              <th>Assigned doctor</th>
+              <th>Assessments</th>
+              <th class="text-end"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for patient in pagination.items %}
+              {% set latest = latest_by_patient.get(patient.id) %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ patient.user.full_name }}</div>
+                  <div class="text-secondary small">{{ patient.user.email }}</div>
+                </td>
+                <td class="small">
+                  {{ patient.age if patient.age is not none else '—' }} /
+                  {{ patient.gender or '—' }}
+                </td>
+                <td>
+                  {% if latest %}
+                    <span class="badge text-bg-{{ latest.risk_badge }}">{{ latest.risk_level }}</span>
+                  {% else %}
+                    <span class="text-secondary small">No assessments</span>
+                  {% endif %}
+                </td>
+                <td class="small">
+                  {% if patient.assigned_doctor %}
+                    Dr. {{ patient.assigned_doctor.user.full_name }}
+                  {% else %}
+                    <span class="badge text-bg-warning">Unassigned</span>
+                  {% endif %}
+                </td>
+                <td>{{ patient.predictions.count() }}</td>
+                <td class="text-end">
+                  <a href="{{ url_for('admin.patient_detail_page', patient_id=patient.id) }}"
+                     class="btn btn-sm btn-outline-primary">Manage</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if pagination.pages > 1 %}
+        <nav class="mt-3">
+          <ul class="pagination pagination-sm justify-content-center mb-0">
+            <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+              <a class="page-link" href="{{ url_for('admin.patients_page', page=pagination.prev_num, q=search, risk=risk, doctor=doctor_filter) }}">Prev</a>
+            </li>
+            <li class="page-item disabled"><span class="page-link">Page {{ pagination.page }} of {{ pagination.pages }}</span></li>
+            <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+              <a class="page-link" href="{{ url_for('admin.patients_page', page=pagination.next_num, q=search, risk=risk, doctor=doctor_filter) }}">Next</a>
+            </li>
+          </ul>
+        </nav>
+      {% endif %}
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-people"></i>
+        <p>No patients found.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

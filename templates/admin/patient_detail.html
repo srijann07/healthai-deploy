@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Patient — {{ patient.user.full_name }}{% endblock %}
+
+{% block sidebar_links %}{% include "admin/_sidebar.html" %}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card content-card animate-in" style="--delay: 0">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="avatar" style="width: 56px; height: 56px; font-size: 1.1rem;">
+            {{ patient.user.first_name[0] }}{{ patient.user.last_name[0] }}
+          </div>
+          <div>
+            <h5 class="card-title mb-0">{{ patient.user.full_name }}</h5>
+            <div class="text-secondary small">{{ patient.user.email }}</div>
+            <span class="badge text-bg-{{ 'danger' if patient.user.is_suspended else 'success' }} mt-1">
+              {{ 'Suspended' if patient.user.is_suspended else 'Active' }}
+            </span>
+          </div>
+        </div>
+
+        <h6 class="fw-semibold mt-4"><i class="bi bi-person-badge me-1 text-primary"></i>Assigned doctor</h6>
+        <form method="POST" action="{{ url_for('admin.patient_assign_doctor', patient_id=patient.id) }}" class="mb-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <div class="input-group">
+            <select class="form-select" name="doctor_id">
+              <option value="" {{ 'selected' if patient.assigned_doctor }}>— None / unassigned —</option>
+              {% for doctor in doctors %}
+                <option value="{{ doctor.id }}" {{ 'selected' if patient.assigned_doctor and patient.assigned_doctor.id == doctor.id }}>
+                  Dr. {{ doctor.user.full_name }} — {{ doctor.specialization }}
+                </option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Assign</button>
+          </div>
+        </form>
+<p class="text-secondary small mb-0">
+          {% if patient.assigned_doctor %}
+            Currently assigned to <strong>Dr. {{ patient.assigned_doctor.user.full_name }}</strong>.
+          {% else %}
+            This patient has no assigned doctor — assessments will not be routed for review.
+          {% endif %}
+        </p>
+
+        <hr>
+        <dl class="row small mb-0">
+          <dt class="col-5 text-secondary">Phone</dt>
+          <dd class="col-7">{{ patient.user.phone or '—' }}</dd>
+          <dt class="col-5 text-secondary">Email</dt>
+          <dd class="col-7 text-break">{{ patient.user.email }}</dd>
+          <dt class="col-5 text-secondary">Age</dt>
+          <dd class="col-7">{{ patient.age if patient.age is not none else '—' }}</dd>
+          <dt class="col-5 text-secondary">Gender</dt>
+          <dd class="col-7">{{ patient.gender or '—' }}</dd>
+          <dt class="col-5 text-secondary">Blood group</dt>
+          <dd class="col-7">{{ patient.blood_group or '—' }}</dd>
+          <dt class="col-5 text-secondary">BMI</dt>
+          <dd class="col-7">{{ patient.bmi if patient.bmi is not none else '—' }}</dd>
+          <dt class="col-5 text-secondary">Address</dt>
+          <dd class="col-7">{{ patient.address or '—' }}</dd>
+        </dl>
+
+        {% set history = patient.medical_history %}
+        {% if history %}
+          <hr>
+          <h6 class="fw-semibold">Medical history</h6>
+          <dl class="row small mb-0">
+            <dt class="col-5 text-secondary">Allergies</dt>
+            <dd class="col-7">{{ history.allergies or '—' }}</dd>
+            <dt class="col-5 text-secondary">Chronic conditions</dt>
+            <dd class="col-7">{{ history.chronic_conditions or '—' }}</dd>
+            <dt class="col-5 text-secondary">Family history</dt>
+            <dd class="col-7">{{ history.family_history or '—' }}</dd>
+          </dl>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card content-card animate-in mb-4" style="--delay: 1">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-clipboard2-pulse me-2 text-primary"></i>AI assessments ({{ predictions|length }})</h5>
+        {% if predictions %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Risk</th>
+                  <th>Condition</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in predictions %}
+                  <tr>
+                    <td class="text-nowrap">{{ p.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+                    <td><span class="badge text-bg-{{ p.risk_badge }}">{{ p.risk_level }}</span></td>
+                    <td>{{ p.possible_disease or '—' }}</td>
+                    <td>
+                      {% if p.status == 'pending_review' %}
+                        <span class="badge text-bg-warning">Pending</span>
+                      {% elif p.status == 'approved' %}
+                        <span class="badge text-bg-success">Approved</span>
+                      {% else %}
+                        <span class="badge text-bg-secondary">Rejected</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-clipboard2-pulse"></i>
+            <p>No AI assessments yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card content-card animate-in mb-4" style="--delay: 2">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-file-earmark-medical me-2 text-primary"></i>Medical reports ({{ reports|length }})</h5>
+        {% if reports %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>File</th>
+                  <th>Size</th>
+                  <th>Uploaded</th>
+                  <th class="text-end"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for report in reports %}
+                  <tr>
+                    <td>
+                      <div class="fw-semibold">{{ report.original_filename }}</div>
+                      <div class="text-secondary small">{{ report.description or '' }}</div>
+                    </td>
+                    <td class="small">{{ report.size_display }}</td>
+                    <td class="small text-nowrap">{{ report.uploaded_at.strftime('%d %b %Y') }}</td>
+                    <td class="text-end">
+                      <a href="{{ url_for('admin.report_download', report_id=report.id) }}" class="btn btn-sm btn-outline-primary">Download</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-secondary small mb-0">No reports uploaded.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card content-card animate-in" style="--delay: 3">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-calendar2-check me-2 text-primary"></i>Appointments ({{ appointments|length }})</h5>
+        {% if appointments %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>Doctor</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for appt in appointments %}
+                  <tr>
+                    <td class="text-nowrap">{{ appt.scheduled_at.strftime('%d %b %Y, %H:%M') }}</td>
+                    <td>Dr. {{ appt.doctor.user.full_name }}</td>
+                    <td>
+                      {% if appt.status == 'pending' %}
+                        <span class="badge text-bg-warning">Pending</span>
+                      {% elif appt.status == 'confirmed' %}
+                        <span class="badge text-bg-success">Confirmed</span>
+                      {% elif appt.status == 'completed' %}
+                        <span class="badge text-bg-info">Completed</span>
+                      {% else %}
+                        <span class="badge text-bg-secondary">Cancelled</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-secondary small mb-0">No appointments.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

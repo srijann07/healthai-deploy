@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.dashboard' }}" href="{{ url_for('admin.dashboard') }}">
+  <i class="bi bi-grid-1x2-fill"></i> Dashboard
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.patients_page' or request.endpoint == 'admin.patient_detail_page' }}" href="{{ url_for('admin.patients_page') }}">
+  <i class="bi bi-people"></i> Patients
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.doctors_page' }}" href="{{ url_for('admin.doctors_page') }}">
+  <i class="bi bi-person-badge"></i> Doctors
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.users_page' }}" href="{{ url_for('admin.users_page') }}">
+  <i class="bi bi-person-lines-fill"></i> Users
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.predictions_page' }}" href="{{ url_for('admin.predictions_page') }}">
+  <i class="bi bi-clipboard2-pulse"></i> Predictions
+  {% if stats.pending_reviews %}
+    <span class="badge rounded-pill text-bg-danger ms-auto">{{ stats.pending_reviews }}</span>
+  {% endif %}
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.appointments_page' }}" href="{{ url_for('admin.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+  {% if stats.pending_appointments %}
+    <span class="badge rounded-pill text-bg-warning ms-auto">{{ stats.pending_appointments }}</span>
+  {% endif %}
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.reports_page' }}" href="{{ url_for('admin.reports_page') }}">
+  <i class="bi bi-file-earmark-medical"></i> Medical Reports
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.audit_page' }}" href="{{ url_for('admin.audit_page') }}">
+  <i class="bi bi-journal-check"></i> Audit Log
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.announce_page' }}" href="{{ url_for('admin.announce_page') }}">
+  <i class="bi bi-megaphone"></i> Announcements
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 0" href="{{ url_for('admin.patients_page') }}">
+      <div class="stat-icon bg-primary-subtle"><i class="bi bi-people"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ stats.patients }}">{{ stats.patients }}</div>
+        <div class="stat-label">Patients</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 1" href="{{ url_for('admin.doctors_page') }}">
+      <div class="stat-icon bg-info-subtle"><i class="bi bi-person-badge"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ stats.doctors }}">{{ stats.doctors }}</div>
+        <div class="stat-label">Doctors</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 2" href="{{ url_for('admin.users_page') }}">
+      <div class="stat-icon bg-secondary-subtle"><i class="bi bi-person-lines-fill"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ stats.users }}">{{ stats.users }}</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 3" href="{{ url_for('admin.predictions_page') }}">
+      <div class="stat-icon bg-success-subtle"><i class="bi bi-activity"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ stats.predictions }}">{{ stats.predictions }}</div>
+        <div class="stat-label">AI Predictions</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 4" href="{{ url_for('admin.predictions_page') }}">
+      <div class="stat-icon bg-danger-subtle"><i class="bi bi-exclamation-triangle"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ stats.high_risk }}">{{ stats.high_risk }}</div>
+        <div class="stat-label">High-Risk Results</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 5" href="{{ url_for('admin.reports_page') }}">
+      <div class="stat-icon bg-warning-subtle"><i class="bi bi-file-earmark-medical"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ stats.reports }}">{{ stats.reports }}</div>
+        <div class="stat-label">Medical Reports</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 6" href="{{ url_for('admin.predictions_page', tab='pending') }}">
+      <div class="stat-icon bg-primary-subtle"><i class="bi bi-hourglass-split"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ stats.pending_reviews }}">{{ stats.pending_reviews }}</div>
+        <div class="stat-label">Pending Reviews</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 7" href="{{ url_for('admin.appointments_page') }}">
+      <div class="stat-icon bg-info-subtle"><i class="bi bi-calendar2-plus"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ stats.pending_appointments }}">{{ stats.pending_appointments }}</div>
+        <div class="stat-label">Pending Appointments</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-6 col-xxl-3">
+    <a class="quick-action animate-in" style="--delay: 8" href="{{ url_for('admin.users_page') }}">
+      <i class="bi bi-person-lines-fill"></i>
+      <span>Manage users</span>
+    </a>
+  </div>
+  <div class="col-md-6 col-xxl-3">
+    <a class="quick-action animate-in" style="--delay: 9" href="{{ url_for('admin.doctors_page') }}">
+      <i class="bi bi-person-badge"></i>
+      <span>Manage doctors</span>
+    </a>
+  </div>
+  <div class="col-md-6 col-xxl-3">
+    <a class="quick-action animate-in" style="--delay: 10" href="{{ url_for('admin.predictions_page') }}">
+      <i class="bi bi-clipboard2-check"></i>
+      <span>Review predictions</span>
+    </a>
+  </div>
+  <div class="col-md-6 col-xxl-3">
+    <a class="quick-action animate-in" style="--delay: 11" href="{{ url_for('admin.announce_page') }}">
+      <i class="bi bi-megaphone"></i>
+      <span>Send announcement</span>
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card content-card animate-in" style="--delay: 8">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-speedometer2 me-2 text-primary"></i>Risk distribution</h5>
+        {% for level in ['Low', 'Medium', 'High', 'Critical'] %}
+          {% set count = risk_counts.get(level, 0) %}
+          {% set pct = (count / risk_total * 100) | round(1) %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="fw-semibold">{{ level }} risk</span>
+              <span>{{ count }} <span class="text-secondary">({{ pct }}%)</span></span>
+            </div>
+            <div class="progress" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100" style="height: 8px">
+              <div class="progress-bar {{ 'bg-danger' if level == 'Critical' }}" style="width: {{ pct }}%"></div>
+            </div>
+          </div>
+        {% endfor %}
+        <a href="{{ url_for('admin.predictions_page') }}" class="btn btn-outline-primary btn-sm w-100">
+          <i class="bi bi-clipboard2-pulse me-1"></i>All predictions
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card content-card animate-in" style="--delay: 9">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-person-plus me-2 text-primary"></i>New signups</h5>
+        {% if recent_users %}
+          <ul class="list-unstyled mb-3">
+            {% for user in recent_users %}
+              <li class="d-flex align-items-center gap-3 py-2 border-bottom">
+                <span class="avatar" style="width: 34px; height: 34px; font-size: 0.72rem;">{{ user.first_name[0] }}{{ user.last_name[0] }}</span>
+                <div class="flex-grow-1">
+                  <div class="small fw-semibold">{{ user.full_name }}</div>
+                  <div class="text-secondary" style="font-size: 0.72rem;">{{ user.email }}</div>
+                </div>
+                <span class="badge text-bg-{{ 'info' if user.role_name == 'doctor' else ('primary' if user.role_name == 'patient' else 'secondary') }}">{{ user.role_name }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+          <p class="text-secondary small mb-0"><i class="bi bi-person-plus-fill me-1"></i>{{ stats.new_users_30d }} new users in the last 30 days</p>
+        {% else %}
+          <p class="text-secondary small mb-0">No users yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card content-card animate-in" style="--delay: 10">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-journal-check me-2 text-primary"></i>Recent activity</h5>
+        {% if recent_activity %}
+          <ul class="list-unstyled mb-0">
+            {% for entry in recent_activity %}
+              <li class="py-2 border-bottom small">
+                <span class="text-secondary">{{ entry.created_at.strftime('%d %b %H:%M') }}</span>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                  <span class="badge text-bg-secondary text-uppercase" style="font-size: 0.62rem;">{{ entry.action }}</span>
+                  {% if entry.user %}<span class="text-secondary">{{ entry.user.full_name }}</span>{% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-secondary small mb-0">No activity recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

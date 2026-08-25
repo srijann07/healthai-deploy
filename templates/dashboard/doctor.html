@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Doctor Dashboard{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'doctor.patients_page' or request.endpoint == 'doctor.patient_detail_page' }}" href="{{ url_for('doctor.patients_page') }}">
+  <i class="bi bi-people"></i> My Patients
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'doctor.predictions_page' or request.endpoint == 'doctor.review_prediction_page' }}" href="{{ url_for('doctor.predictions_page') }}">
+  <i class="bi bi-clipboard2-check"></i> Review Queue
+  {% if pending_count %}
+    <span class="badge rounded-pill text-bg-danger ms-auto">{{ pending_count }}</span>
+  {% endif %}
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'doctor.appointments_page' }}" href="{{ url_for('doctor.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 0" href="{{ url_for('doctor.patients_page') }}">
+      <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-people"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ patient_count }}">{{ patient_count }}</div>
+        <div class="stat-label">Assigned Patients</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 1" href="{{ url_for('doctor.predictions_page') }}">
+      <div class="stat-icon bg-warning-subtle text-warning"><i class="bi bi-hourglass-split"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ pending_count }}">{{ pending_count }}</div>
+        <div class="stat-label">Pending Reviews</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 2" href="{{ url_for('doctor.predictions_page', tab='reviewed') }}">
+      <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-clipboard2-check"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ reviewed_count }}">{{ reviewed_count }}</div>
+        <div class="stat-label">Reviewed</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <a class="stat-card animate-in text-decoration-none" style="--delay: 3" href="{{ url_for('doctor.appointments_page') }}">
+      <div class="stat-icon bg-info-subtle text-info"><i class="bi bi-calendar2-check"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ upcoming_appointments }}">{{ upcoming_appointments }}</div>
+        <div class="stat-label">Upcoming Appointments</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="card content-card animate-in" style="--delay: 4">
+  <div class="card-body">
+    <h5 class="card-title">
+      <i class="bi bi-clipboard2-pulse me-2 text-primary"></i>
+      Dr. {{ current_user.full_name }} — {{ doctor.specialization if doctor else 'Doctor' }}
+    </h5>
+    <p class="text-secondary mb-2">
+      {% if doctor and doctor.hospital %}{{ doctor.hospital }} · {% endif %}
+      {% if doctor and doctor.license_number %}License {{ doctor.license_number }}{% endif %}
+    </p>
+    <p class="text-secondary small mb-3">
+      <i class="bi bi-info-circle me-1"></i>
+      AI assessments from your patients land in the review queue — verify each
+      one and add your own recommendations.
+    </p>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ url_for('doctor.predictions_page') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-clipboard2-check me-1"></i>Review queue
+        {% if pending_count %}<span class="badge text-bg-light ms-1">{{ pending_count }}</span>{% endif %}
+      </a>
+      <a href="{{ url_for('doctor.patients_page') }}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-people me-1"></i>My patients
+      </a>
+      <a href="{{ url_for('doctor.appointments_page') }}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-calendar2-check me-1"></i>Appointments
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

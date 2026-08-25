@@ -1,0 +1,27 @@
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.dashboard' }}" href="{{ url_for('admin.dashboard') }}">
+  <i class="bi bi-grid-1x2-fill"></i> Dashboard
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.patients_page' or request.endpoint == 'admin.patient_detail_page' }}" href="{{ url_for('admin.patients_page') }}">
+  <i class="bi bi-people"></i> Patients
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.doctors_page' }}" href="{{ url_for('admin.doctors_page') }}">
+  <i class="bi bi-person-badge"></i> Doctors
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.users_page' }}" href="{{ url_for('admin.users_page') }}">
+  <i class="bi bi-person-lines-fill"></i> Users
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.predictions_page' }}" href="{{ url_for('admin.predictions_page') }}">
+  <i class="bi bi-clipboard2-pulse"></i> Predictions
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.appointments_page' }}" href="{{ url_for('admin.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.reports_page' }}" href="{{ url_for('admin.reports_page') }}">
+  <i class="bi bi-file-earmark-medical"></i> Medical Reports
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.audit_page' }}" href="{{ url_for('admin.audit_page') }}">
+  <i class="bi bi-journal-check"></i> Audit Log
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'admin.announce_page' }}" href="{{ url_for('admin.announce_page') }}">
+  <i class="bi bi-megaphone"></i> Announcements
+</a>

@@ -1,0 +1,185 @@
+{% extends "auth/auth_base.html" %}
+{% block title %}Sign in{% endblock %}
+
+{% block form %}
+<h1 class="auth-title">Welcome back</h1>
+<p class="auth-subtitle">Sign in to your {{ app_name }} account.</p>
+
+<!-- Auth Method Switcher Tabs -->
+<ul class="nav nav-pills nav-fill mb-4 p-1 bg-body-tertiary rounded-3 border" id="authTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link {{ 'active' if active_tab != 'otp' else '' }} py-2 fw-medium" id="email-tab" data-bs-toggle="pill" data-bs-target="#email-panel" type="button" role="tab" aria-controls="email-panel" aria-selected="{{ 'true' if active_tab != 'otp' else 'false' }}">
+      <i class="bi bi-envelope me-1"></i> Email & Password
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link {{ 'active' if active_tab == 'otp' else '' }} py-2 fw-medium" id="otp-tab" data-bs-toggle="pill" data-bs-target="#otp-panel" type="button" role="tab" aria-controls="otp-panel" aria-selected="{{ 'true' if active_tab == 'otp' else 'false' }}">
+      <i class="bi bi-phone me-1"></i> Mobile OTP <span class="badge bg-primary-subtle text-primary ms-1">+91</span>
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content" id="authTabContent">
+  <!-- 1. Email & Password Tab -->
+  <div class="tab-pane fade {{ 'show active' if active_tab != 'otp' else '' }}" id="email-panel" role="tabpanel" aria-labelledby="email-tab">
+    <form method="POST" action="{{ url_for('auth.login_page', next=request.args.get('next')) }}" data-loading novalidate>
+      <div class="mb-3">
+        <label class="form-label" for="email">Email address</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+          <input type="email" class="form-control" id="email" name="email" value="{{ email or '' }}"
+                 placeholder="you@example.com" required {{ 'autofocus' if active_tab != 'otp' else '' }} autocomplete="email">
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label" for="password">Password</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock"></i></span>
+          <input type="password" class="form-control" id="password" name="password"
+                 placeholder="Your password" required autocomplete="current-password">
+          <button class="btn btn-outline-secondary" type="button" data-toggle-password="#password"
+                  aria-label="Show password"><i class="bi bi-eye"></i></button>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end mb-4">
+        <a class="auth-link small" href="{{ url_for('auth.forgot_password_page') }}">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg w-100">
+        <span class="btn-label">Sign in with Email</span>
+        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+      </button>
+    </form>
+  </div>
+
+  <!-- 2. Mobile OTP (+91) Tab -->
+  <div class="tab-pane fade {{ 'show active' if active_tab == 'otp' else '' }}" id="otp-panel" role="tabpanel" aria-labelledby="otp-tab">
+    <div id="otp-status-alert" class="alert d-none mb-3" role="alert"></div>
+
+    <form method="POST" action="{{ url_for('auth.login_otp', next=request.args.get('next')) }}" id="otp-login-form" data-loading novalidate>
+      <div class="mb-3">
+        <label class="form-label" for="otp_phone">Indian Mobile Number</label>
+        <div class="input-group">
+          <span class="input-group-text bg-body-secondary fw-semibold text-primary">🇮🇳 +91</span>
+          <input type="tel" class="form-control" id="otp_phone" name="phone" value="{{ phone or '' }}"
+                 placeholder="98765 43210" maxlength="15" required {{ 'autofocus' if active_tab == 'otp' else '' }} autocomplete="tel">
+          <button class="btn btn-outline-primary" type="button" id="btn-send-otp">
+            <span id="btn-send-otp-text">Send OTP</span>
+            <span id="btn-send-otp-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="form-text">Enter your 10-digit Indian mobile number (e.g. 9876543210).</div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label" for="otp_code">6-Digit Verification Code</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+          <input type="text" class="form-control form-control-lg text-center fw-bold letter-spacing-2"
+                 id="otp_code" name="otp" placeholder="• • • • • •" maxlength="6" inputmode="numeric"
+                 pattern="[0-9]{6}" required autocomplete="one-time-code" style="letter-spacing: 0.35rem; font-size: 1.25rem;">
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-1">
+          <div class="form-text">Valid for 5 minutes.</div>
+          <span id="otp-resend-timer" class="small text-secondary d-none"></span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg w-100" id="btn-submit-otp">
+        <span class="btn-label"><i class="bi bi-box-arrow-in-right me-1"></i> Verify & Sign in</span>
+        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<p class="auth-switch mt-4">New to {{ app_name }}?
+  <a class="auth-link" href="{{ url_for('auth.register_page') }}">Create a patient account</a>
+</p>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const btnSendOtp = document.getElementById("btn-send-otp");
+  const btnSendText = document.getElementById("btn-send-otp-text");
+  const btnSendSpinner = document.getElementById("btn-send-otp-spinner");
+  const phoneInput = document.getElementById("otp_phone");
+  const otpInput = document.getElementById("otp_code");
+  const alertBox = document.getElementById("otp-status-alert");
+  const resendTimerText = document.getElementById("otp-resend-timer");
+
+  let countdownInterval = null;
+
+  function showAlert(message, type = "info") {
+    alertBox.className = `alert alert-${type} alert-dismissible fade show mb-3`;
+    alertBox.innerHTML = `${message} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+    alertBox.classList.remove("d-none");
+  }
+
+  function startCooldown(seconds) {
+    btnSendOtp.disabled = true;
+    resendTimerText.classList.remove("d-none");
+    let remaining = seconds;
+
+    clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+      remaining -= 1;
+      btnSendText.textContent = `Resend (${remaining}s)`;
+      resendTimerText.textContent = `You can request a new OTP in ${remaining}s`;
+      if (remaining <= 0) {
+        clearInterval(countdownInterval);
+        btnSendOtp.disabled = false;
+        btnSendText.textContent = "Resend OTP";
+        resendTimerText.classList.add("d-none");
+      }
+    }, 1000);
+  }
+
+  if (btnSendOtp) {
+    btnSendOtp.addEventListener("click", async function() {
+      const phone = phoneInput.value.trim();
+      if (!phone) {
+        showAlert("Please enter your Indian mobile number first.", "warning");
+        phoneInput.focus();
+        return;
+      }
+
+      btnSendOtp.disabled = true;
+      btnSendText.textContent = "Sending...";
+      btnSendSpinner.classList.remove("d-none");
+
+      try {
+        const response = await fetch("{{ url_for('auth.send_otp') }}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": "{{ csrf_token }}"
+          },
+          body: JSON.stringify({ phone: phone, purpose: "login" })
+        });
+
+        const data = await response.json();
+        btnSendSpinner.classList.add("d-none");
+
+        if (response.ok && data.success) {
+          showAlert(`<strong>Code Sent!</strong> ${data.message}`, "success");
+          startCooldown(60);
+          otpInput.value = "";
+          otpInput.focus();
+        } else {
+          showAlert(data.error || "Failed to send OTP. Please check the number.", "danger");
+          btnSendOtp.disabled = false;
+          btnSendText.textContent = "Send OTP";
+        }
+      } catch (err) {
+        btnSendSpinner.classList.add("d-none");
+        btnSendOtp.disabled = false;
+        btnSendText.textContent = "Send OTP";
+        showAlert("Network error while requesting OTP. Please try again.", "danger");
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

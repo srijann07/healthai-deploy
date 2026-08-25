@@ -1,0 +1,71 @@
+{% extends "auth/auth_base.html" %}
+{% block title %}Create account{% endblock %}
+
+{% block form %}
+<h1 class="auth-title">Create your account</h1>
+<p class="auth-subtitle">Start monitoring your health in minutes.</p>
+
+<form method="POST" action="{{ url_for('auth.register_page') }}" data-loading novalidate>
+  <div class="row g-3">
+    <div class="col-sm-6">
+      <label class="form-label" for="first_name">First name</label>
+      <input type="text" class="form-control" id="first_name" name="first_name"
+             value="{{ form.first_name if form else '' }}" placeholder="Aarav" required autocomplete="given-name">
+    </div>
+    <div class="col-sm-6">
+      <label class="form-label" for="last_name">Last name</label>
+      <input type="text" class="form-control" id="last_name" name="last_name"
+             value="{{ form.last_name if form else '' }}" placeholder="Patel" required autocomplete="family-name">
+    </div>
+
+    <div class="col-12">
+      <label class="form-label" for="email">Email address</label>
+      <input type="email" class="form-control" id="email" name="email"
+             value="{{ form.email if form else '' }}" placeholder="you@example.com" required autocomplete="email">
+    </div>
+
+    <div class="col-sm-6">
+      <label class="form-label" for="phone">Indian Mobile <span class="text-secondary">(optional)</span></label>
+      <div class="input-group">
+        <span class="input-group-text bg-body-secondary fw-semibold text-primary">🇮🇳 +91</span>
+        <input type="tel" class="form-control" id="phone" name="phone"
+               value="{{ form.phone if form else '' }}" placeholder="98765 43210" maxlength="15" autocomplete="tel">
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <label class="form-label" for="gender">Gender <span class="text-secondary">(optional)</span></label>
+      <select class="form-select" id="gender" name="gender">
+        <option value="" {{ 'selected' if not form or not form.gender }}>Prefer not to say</option>
+        <option value="male" {{ 'selected' if form and form.gender == 'male' }}>Male</option>
+        <option value="female" {{ 'selected' if form and form.gender == 'female' }}>Female</option>
+        <option value="other" {{ 'selected' if form and form.gender == 'other' }}>Other</option>
+      </select>
+    </div>
+
+    <div class="col-sm-6">
+      <label class="form-label" for="password">Password</label>
+      <div class="input-group">
+        <input type="password" class="form-control" id="password" name="password"
+               placeholder="8+ characters" required autocomplete="new-password">
+        <button class="btn btn-outline-secondary" type="button" data-toggle-password="#password"
+                aria-label="Show password"><i class="bi bi-eye"></i></button>
+      </div>
+      <div class="form-text">At least 8 characters with letters and numbers.</div>
+    </div>
+    <div class="col-sm-6">
+      <label class="form-label" for="confirm_password">Confirm password</label>
+      <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+             placeholder="Repeat password" required autocomplete="new-password">
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-lg w-100 mt-4">
+    <span class="btn-label">Create account</span>
+    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  </button>
+</form>
+
+<p class="auth-switch">Already have an account?
+  <a class="auth-link" href="{{ url_for('auth.login_page') }}">Sign in</a>
+</p>
+{% endblock %}

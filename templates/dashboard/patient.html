@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}My Health Dashboard{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assess_health' }}" href="{{ url_for('patient.assess_health') }}">
+  <i class="bi bi-stars"></i> AI Health Check
+</a>
+<a class="nav-item {{ 'active' if request.endpoint in ['patient.predictions_page', 'patient.prediction_detail_page'] }}" href="{{ url_for('patient.predictions_page') }}">
+  <i class="bi bi-clipboard2-pulse"></i> My Assessments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.profile_page' }}" href="{{ url_for('patient.profile_page') }}">
+  <i class="bi bi-person-vcard"></i> Profile
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.health_page' }}" href="{{ url_for('patient.health_page') }}">
+  <i class="bi bi-heart-pulse"></i> Health Information
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assigned_doctor_page' }}" href="{{ url_for('patient.assigned_doctor_page') }}">
+  <i class="bi bi-person-badge"></i> My Doctor
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.appointments_page' }}" href="{{ url_for('patient.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.reports_page' }}" href="{{ url_for('patient.reports_page') }}">
+  <i class="bi bi-file-earmark-medical"></i> Medical Reports
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.change_password_page' }}" href="{{ url_for('patient.change_password_page') }}">
+  <i class="bi bi-shield-lock"></i> Change Password
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card animate-in" style="--delay: 0">
+      <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-activity"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ prediction_count }}">{{ prediction_count }}</div>
+        <div class="stat-label">AI Predictions</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card animate-in" style="--delay: 1">
+      <div class="stat-icon bg-info-subtle text-info"><i class="bi bi-file-earmark-medical"></i></div>
+      <div>
+        <div class="stat-value gradient" data-count="{{ report_count }}">{{ report_count }}</div>
+        <div class="stat-label">Medical Reports</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card animate-in" style="--delay: 2">
+      <div class="stat-icon bg-warning-subtle text-warning"><i class="bi bi-heart-pulse"></i></div>
+      <div>
+        <div class="stat-value">
+          {% if latest_prediction %}
+            <span class="badge text-bg-{{ latest_prediction.risk_badge }} fs-6">{{ latest_prediction.risk_level }}</span>
+          {% else %}<span class="text-secondary">—</span>{% endif %}
+        </div>
+        <div class="stat-label">Latest Risk Level</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card animate-in" style="--delay: 3">
+      <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-person-vcard"></i></div>
+      <div>
+        <div class="stat-value">{{ patient.bmi if patient and patient.bmi else '—' }}</div>
+        <div class="stat-label">Your BMI</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card content-card animate-in" style="--delay: 4">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-stars me-2 text-primary"></i>Welcome, {{ current_user.first_name }}</h5>
+        {% if latest_prediction %}
+          <p class="text-secondary mb-3">
+            Your most recent assessment ({{ latest_prediction.created_at.strftime('%d %b %Y') }})
+            rated your risk as
+            <span class="badge text-bg-{{ latest_prediction.risk_badge }}">{{ latest_prediction.risk_level }}</span>
+            {% if latest_prediction.possible_disease %} with a possible condition of
+            <strong>{{ latest_prediction.possible_disease }}</strong>{% endif %}.
+          </p>
+        {% else %}
+          <p class="text-secondary mb-3">
+            You haven't run a health assessment yet.
+            <a href="{{ url_for('patient.assess_health') }}">Start your first AI health check</a>
+            — tell us your symptoms and habits, and the engine will estimate
+            your risk in seconds.
+          </p>
+        {% endif %}
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="{{ url_for('patient.assess_health') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-stars me-1"></i>Run AI health check
+          </a>
+          <a href="{{ url_for('patient.predictions_page') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-clipboard2-pulse me-1"></i>My assessments
+          </a>
+          {% if patient.assigned_doctor %}
+            <a href="{{ url_for('patient.appointments_page') }}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-calendar2-plus me-1"></i>Book appointment
+            </a>
+          {% endif %}
+        </div>
+        <p class="text-secondary small mb-0 mt-3">
+          <i class="bi bi-info-circle me-1"></i>
+          Keep your profile and health information up to date — it feeds directly
+          into your AI risk assessment.
+          <a href="{{ url_for('patient.health_page') }}">Update health information</a>
+        </p>
+        <div class="ecg-wrap" aria-hidden="true"><div class="ecg-line"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card content-card animate-in" style="--delay: 5">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-person-gear me-2 text-primary"></i>Profile completeness</h5>
+        {% set fields = [patient.date_of_birth, patient.gender, patient.height_cm, patient.weight_kg, current_user.phone] %}
+        {% set filled = fields | select | list | length %}
+        {% set pct = (filled / fields|length * 100) | round(0) | int %}
+        {% set ring_color = '#34d399' if pct >= 66 else ('#fbbf24' if pct >= 33 else '#fb7185') %}
+        <div class="health-ring" style="--ring-color: {{ ring_color }}; --ring-value: {{ pct }}">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+            <circle class="ring-fill" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <div class="ring-center">
+            <div>
+              <div class="ring-value">{{ pct }}%</div>
+              <div class="ring-label">Complete</div>
+            </div>
+          </div>
+        </div>
+        <p class="text-secondary small text-center mb-2">
+          {{ filled }} of {{ fields|length }} details completed — age, height and
+          weight feed directly into the risk model.
+        </p>
+        <a href="{{ url_for('patient.profile_page') }}" class="btn btn-outline-primary btn-sm w-100">
+          <i class="bi bi-pencil-square me-1"></i>Complete your profile
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

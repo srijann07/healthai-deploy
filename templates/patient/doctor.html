@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}My Doctor{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assess_health' }}" href="{{ url_for('patient.assess_health') }}">
+  <i class="bi bi-stars"></i> AI Health Check
+</a>
+<a class="nav-item {{ 'active' if request.endpoint in ['patient.predictions_page', 'patient.prediction_detail_page'] }}" href="{{ url_for('patient.predictions_page') }}">
+  <i class="bi bi-clipboard2-pulse"></i> My Assessments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.profile_page' }}" href="{{ url_for('patient.profile_page') }}">
+  <i class="bi bi-person-vcard"></i> Profile
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.health_page' }}" href="{{ url_for('patient.health_page') }}">
+  <i class="bi bi-heart-pulse"></i> Health Information
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assigned_doctor_page' }}" href="{{ url_for('patient.assigned_doctor_page') }}">
+  <i class="bi bi-person-badge"></i> My Doctor
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.appointments_page' }}" href="{{ url_for('patient.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.reports_page' }}" href="{{ url_for('patient.reports_page') }}">
+  <i class="bi bi-file-earmark-medical"></i> Medical Reports
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.change_password_page' }}" href="{{ url_for('patient.change_password_page') }}">
+  <i class="bi bi-shield-lock"></i> Change Password
+</a>
+{% endblock %}
+
+{% block content %}
+{% if doctor %}
+  <div class="card content-card animate-in" style="--delay: 0">
+    <div class="card-body">
+      <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <div class="avatar" style="width: 64px; height: 64px; font-size: 1.3rem;">
+          {{ doctor.user.first_name[0] }}{{ doctor.user.last_name[0] }}
+        </div>
+        <div>
+          <h5 class="card-title mb-0">Dr. {{ doctor.user.full_name }}</h5>
+          <div class="text-secondary">
+            {{ doctor.specialization }}
+            {% if doctor.hospital %} · {{ doctor.hospital }}{% endif %}
+          </div>
+        </div>
+        {% if doctor.is_available %}
+          <span class="badge text-bg-success ms-auto">Available</span>
+        {% else %}
+          <span class="badge text-bg-secondary ms-auto">Not available</span>
+        {% endif %}
+      </div>
+
+      <div class="row g-3">
+        <div class="col-sm-6 col-lg-3">
+          <div class="border rounded p-3 h-100">
+            <div class="text-secondary small">Specialization</div>
+            <div class="fw-semibold">{{ doctor.specialization }}</div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="border rounded p-3 h-100">
+            <div class="text-secondary small">Experience</div>
+            <div class="fw-semibold">{{ doctor.years_experience }} years</div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="border rounded p-3 h-100">
+            <div class="text-secondary small">License</div>
+            <div class="fw-semibold">{{ doctor.license_number or '—' }}</div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="border rounded p-3 h-100">
+            <div class="text-secondary small">Hospital</div>
+            <div class="fw-semibold">{{ doctor.hospital or '—' }}</div>
+          </div>
+        </div>
+        {% if doctor.bio %}
+          <div class="col-12">
+            <div class="border rounded p-3">
+              <div class="text-secondary small mb-1">About</div>
+              <div>{{ doctor.bio }}</div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-4 d-flex gap-2 flex-wrap">
+        <a href="{{ url_for('patient.appointments_page') }}" class="btn btn-primary">
+          <i class="bi bi-calendar2-plus me-1"></i>Book an appointment
+        </a>
+        <a href="{{ url_for('patient.assess_health') }}" class="btn btn-outline-primary">
+          <i class="bi bi-stars me-1"></i>Run an AI health check
+        </a>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="card content-card animate-in" style="--delay: 0">
+    <div class="card-body">
+      <div class="empty-state">
+        <i class="bi bi-person-badge"></i>
+        <p>No doctor has been assigned to you yet.</p>
+        <p class="small text-secondary">Once a doctor is available you'll be assigned automatically and notified here.</p>
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

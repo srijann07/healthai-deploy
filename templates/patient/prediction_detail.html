@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Assessment #{{ prediction.id }}{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assess_health' }}" href="{{ url_for('patient.assess_health') }}">
+  <i class="bi bi-stars"></i> AI Health Check
+</a>
+<a class="nav-item {{ 'active' if request.endpoint in ['patient.predictions_page', 'patient.prediction_detail_page'] }}" href="{{ url_for('patient.predictions_page') }}">
+  <i class="bi bi-clipboard2-pulse"></i> My Assessments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.profile_page' }}" href="{{ url_for('patient.profile_page') }}">
+  <i class="bi bi-person-vcard"></i> Profile
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.health_page' }}" href="{{ url_for('patient.health_page') }}">
+  <i class="bi bi-heart-pulse"></i> Health Information
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assigned_doctor_page' }}" href="{{ url_for('patient.assigned_doctor_page') }}">
+  <i class="bi bi-person-badge"></i> My Doctor
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.appointments_page' }}" href="{{ url_for('patient.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.reports_page' }}" href="{{ url_for('patient.reports_page') }}">
+  <i class="bi bi-file-earmark-medical"></i> Medical Reports
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.change_password_page' }}" href="{{ url_for('patient.change_password_page') }}">
+  <i class="bi bi-shield-lock"></i> Change Password
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card content-card animate-in" style="--delay: 0">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <h5 class="card-title mb-1"><i class="bi bi-clipboard2-pulse me-2 text-primary"></i>Assessment #{{ prediction.id }}</h5>
+            <span class="text-secondary small">{{ prediction.created_at.strftime('%d %b %Y, %H:%M') }} · Engine {{ prediction.model_version }}</span>
+          </div>
+          <span class="badge text-bg-{{ prediction.risk_badge }} fs-6">{{ prediction.risk_level }} risk</span>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6 col-lg-3">
+            <div class="border rounded p-3 h-100">
+              <div class="text-secondary small">Confidence</div>
+              <div class="fw-semibold fs-5">{{ prediction.confidence | round(0) | int }}%</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="border rounded p-3 h-100">
+              <div class="text-secondary small">Possible condition</div>
+              <div class="fw-semibold fs-6">{{ prediction.possible_disease }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="border rounded p-3 h-100">
+              <div class="text-secondary small">Recommended specialist</div>
+              <div class="fw-semibold fs-6">{{ prediction.recommended_specialist }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="border rounded p-3 h-100">
+              <div class="text-secondary small">Urgency</div>
+              <div class="fw-semibold fs-6">{{ prediction.urgency }}</div>
+            </div>
+          </div>
+        </div>
+
+        {% if prediction.suggestions_list %}
+          <h6 class="fw-semibold mb-2"><i class="bi bi-lightbulb me-1 text-primary"></i>Health suggestions</h6>
+          <ul class="mb-4 small">
+            {% for suggestion in prediction.suggestions_list %}
+              <li class="mb-1">{{ suggestion }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <h6 class="fw-semibold mb-2"><i class="bi bi-activity me-1 text-primary"></i>Input snapshot</h6>
+        <div class="row g-2 small mb-3">
+          <div class="col-sm-6"><span class="text-secondary">Symptoms:</span>
+            {% if prediction.symptoms_list %}
+              {% for s in prediction.symptoms_list %}<span class="badge text-bg-light border me-1">{{ s | replace('_', ' ') }}</span>{% endfor %}
+            {% else %}<span class="text-secondary">—</span>{% endif %}
+          </div>
+          <div class="col-sm-6"><span class="text-secondary">Age / gender:</span> {{ prediction.age }} / {{ prediction.gender }}</div>
+          <div class="col-sm-6"><span class="text-secondary">BMI:</span> {{ prediction.bmi if prediction.bmi is not none else '—' }}</div>
+          <div class="col-sm-6"><span class="text-secondary">Blood pressure:</span>
+            {{ prediction.systolic_bp if prediction.systolic_bp is not none else '—' }}/{{ prediction.diastolic_bp if prediction.diastolic_bp is not none else '—' }}</div>
+          <div class="col-sm-6"><span class="text-secondary">Heart rate:</span> {{ prediction.heart_rate if prediction.heart_rate is not none else '—' }} bpm</div>
+          <div class="col-sm-6"><span class="text-secondary">Blood sugar:</span> {{ prediction.blood_sugar if prediction.blood_sugar is not none else '—' }} mg/dL</div>
+          <div class="col-sm-6"><span class="text-secondary">Temperature:</span> {{ prediction.body_temperature if prediction.body_temperature is not none else '—' }} °C</div>
+          <div class="col-sm-6"><span class="text-secondary">Blood oxygen:</span> {{ prediction.oxygen_level if prediction.oxygen_level is not none else '—' }}%</div>
+          <div class="col-sm-6"><span class="text-secondary">Smoking / alcohol:</span>
+            {{ prediction.smoking_status or '—' }} / {{ prediction.alcohol_consumption or '—' }}</div>
+          <div class="col-sm-6"><span class="text-secondary">Exercise:</span> {{ prediction.exercise_frequency or '—' }}</div>
+          <div class="col-12"><span class="text-secondary">Previous diseases:</span> {{ prediction.previous_diseases or '—' }}</div>
+          <div class="col-12"><span class="text-secondary">Current medicines:</span> {{ prediction.current_medicines or '—' }}</div>
+        </div>
+      </div>
+    </div>
+
+    {% if prediction.status != 'pending_review' %}
+      <div class="card content-card animate-in" style="--delay: 1">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="bi bi-clipboard2-check me-2 text-primary"></i>
+            Doctor's review
+            {% if prediction.status == 'approved' %}
+              <span class="badge text-bg-success ms-1">Approved</span>
+            {% else %}
+              <span class="badge text-bg-secondary ms-1">Disagreed</span>
+            {% endif %}
+          </h5>
+          <p class="text-secondary small mb-3">
+            Reviewed by Dr. {{ prediction.reviewing_doctor.user.full_name if prediction.reviewing_doctor and prediction.reviewing_doctor.user }}
+            on {{ prediction.reviewed_at.strftime('%d %b %Y, %H:%M') }}
+          </p>
+          {% if prediction.doctor_notes %}
+            <h6 class="fw-semibold">Notes</h6>
+            <p class="small">{{ prediction.doctor_notes }}</p>
+          {% endif %}
+          {% if prediction.recommended_tests %}
+            <h6 class="fw-semibold">Recommended tests</h6>
+            <p class="small">{{ prediction.recommended_tests }}</p>
+          {% endif %}
+          {% if prediction.recommended_medicines %}
+            <h6 class="fw-semibold">Recommended medicines</h6>
+            <p class="small">{{ prediction.recommended_medicines }}</p>
+          {% endif %}
+          {% if prediction.lifestyle_recommendations %}
+            <h6 class="fw-semibold">Lifestyle recommendations</h6>
+            <p class="small mb-0">{{ prediction.lifestyle_recommendations }}</p>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card content-card animate-in" style="--delay: 1">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-hourglass-split me-2 text-primary"></i>Review status</h5>
+        {% if prediction.status == 'pending_review' %}
+          <p class="small text-secondary mb-2">
+            Your assigned doctor has been notified and will review this
+            assessment shortly. You'll get a notification when it's done.
+          </p>
+          <span class="badge text-bg-warning">Awaiting doctor review</span>
+        {% else %}
+          <p class="small text-secondary mb-2">
+            This assessment was reviewed by
+            {% if prediction.reviewing_doctor %}{{ prediction.reviewing_doctor.specialization }}{% endif %}
+            on {{ prediction.reviewed_at.strftime('%d %b %Y') }}.
+          </p>
+        {% endif %}
+        <hr>
+        <a href="{{ url_for('patient.assess_health') }}" class="btn btn-primary btn-sm w-100">
+          <i class="bi bi-stars me-1"></i>Run another health check
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Appointments{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assess_health' }}" href="{{ url_for('patient.assess_health') }}">
+  <i class="bi bi-stars"></i> AI Health Check
+</a>
+<a class="nav-item {{ 'active' if request.endpoint in ['patient.predictions_page', 'patient.prediction_detail_page'] }}" href="{{ url_for('patient.predictions_page') }}">
+  <i class="bi bi-clipboard2-pulse"></i> My Assessments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.profile_page' }}" href="{{ url_for('patient.profile_page') }}">
+  <i class="bi bi-person-vcard"></i> Profile
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.health_page' }}" href="{{ url_for('patient.health_page') }}">
+  <i class="bi bi-heart-pulse"></i> Health Information
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assigned_doctor_page' }}" href="{{ url_for('patient.assigned_doctor_page') }}">
+  <i class="bi bi-person-badge"></i> My Doctor
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.appointments_page' }}" href="{{ url_for('patient.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.reports_page' }}" href="{{ url_for('patient.reports_page') }}">
+  <i class="bi bi-file-earmark-medical"></i> Medical Reports
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.change_password_page' }}" href="{{ url_for('patient.change_password_page') }}">
+  <i class="bi bi-shield-lock"></i> Change Password
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card content-card animate-in" style="--delay: 0">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-calendar2-plus me-2 text-primary"></i>Book an appointment</h5>
+        {% if current_user.patient_profile.assigned_doctor %}
+          <p class="text-secondary small mb-3">
+            Your appointment will be requested with
+            <strong>Dr. {{ current_user.patient_profile.assigned_doctor.user.full_name }}</strong>
+            {% if current_user.patient_profile.assigned_doctor.specialization %}
+              ({{ current_user.patient_profile.assigned_doctor.specialization }})
+            {% endif %}
+            and confirmed in your notifications.
+          </p>
+          <form method="POST" action="{{ url_for('patient.appointments_page') }}" data-loading novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="mb-3">
+              <label class="form-label" for="scheduled_at">Date and time</label>
+              <input type="datetime-local" class="form-control" id="scheduled_at" name="scheduled_at"
+                     value="{{ values.scheduled_at }}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="reason">Reason for the visit</label>
+              <textarea class="form-control" id="reason" name="reason" rows="3" maxlength="255"
+                        placeholder="e.g. follow-up on my recent AI assessment">{{ values.reason }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <span class="btn-label"><i class="bi bi-calendar2-check me-1"></i>Request appointment</span>
+              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            </button>
+          </form>
+        {% else %}
+          <p class="text-secondary small mb-0">
+            You need an assigned doctor before you can book appointments. You'll
+            be assigned one automatically as soon as a doctor is available.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card content-card animate-in" style="--delay: 1">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-calendar3 me-2 text-primary"></i>Your appointments</h5>
+        {% if appointments %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Date & time</th>
+                  <th>Doctor</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in appointments %}
+                  <tr>
+                    <td class="text-nowrap">{{ a.scheduled_at.strftime('%d %b %Y, %H:%M') }}</td>
+                    <td>
+                      Dr. {{ a.doctor.user.full_name if a.doctor and a.doctor.user }}
+                    </td>
+                    <td class="small">{{ a.reason }}</td>
+                    <td>
+                      {% if a.status == 'pending' %}
+                        <span class="badge text-bg-warning">Pending</span>
+                      {% elif a.status == 'confirmed' %}
+                        <span class="badge text-bg-success">Confirmed</span>
+                      {% elif a.status == 'completed' %}
+                        <span class="badge text-bg-primary">Completed</span>
+                      {% else %}
+                        <span class="badge text-bg-secondary">Cancelled</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end">
+                      {% if a.status in ['pending', 'confirmed'] %}
+                        <form method="POST" action="{{ url_for('patient.cancel_appointment', appointment_id=a.id) }}"
+                              data-confirm="Cancel this appointment?"
+                              class="d-inline mb-0">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                          <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                        </form>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-calendar3"></i>
+            <p>No appointments yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

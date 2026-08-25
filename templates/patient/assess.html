@@ -1,0 +1,504 @@
+{% extends "base.html" %}
+{% block title %}AI Health Check{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assess_health' }}" href="{{ url_for('patient.assess_health') }}">
+  <i class="bi bi-stars"></i> AI Health Check
+</a>
+<a class="nav-item {{ 'active' if request.endpoint in ['patient.predictions_page', 'patient.prediction_detail_page'] }}" href="{{ url_for('patient.predictions_page') }}">
+  <i class="bi bi-clipboard2-pulse"></i> My Assessments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.profile_page' }}" href="{{ url_for('patient.profile_page') }}">
+  <i class="bi bi-person-vcard"></i> Profile
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.health_page' }}" href="{{ url_for('patient.health_page') }}">
+  <i class="bi bi-heart-pulse"></i> Health Information
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assigned_doctor_page' }}" href="{{ url_for('patient.assigned_doctor_page') }}">
+  <i class="bi bi-person-badge"></i> My Doctor
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.appointments_page' }}" href="{{ url_for('patient.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.reports_page' }}" href="{{ url_for('patient.reports_page') }}">
+  <i class="bi bi-file-earmark-medical"></i> Medical Reports
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.change_password_page' }}" href="{{ url_for('patient.change_password_page') }}">
+  <i class="bi bi-shield-lock"></i> Change Password
+</a>
+{% endblock %}
+
+{% block content %}
+<style>
+/* Modern Symptom Selector Styling */
+.symptom-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--ha-surface);
+  border: 1.5px solid var(--ha-border, rgba(148, 163, 184, 0.2));
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+.symptom-card:hover {
+  border-color: var(--ha-teal, #14b8a6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(20, 184, 166, 0.12);
+}
+.symptom-card.selected {
+  background: rgba(20, 184, 166, 0.12);
+  border-color: var(--ha-teal, #14b8a6);
+  box-shadow: 0 0 0 1px var(--ha-teal, #14b8a6), 0 4px 16px rgba(20, 184, 166, 0.2);
+}
+.symptom-card .icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--ha-teal, #14b8a6);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.symptom-card.selected .icon-box {
+  background: var(--ha-teal, #14b8a6);
+  color: #ffffff;
+}
+.symptom-card .symptom-title {
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.3;
+  margin: 0;
+  flex-grow: 1;
+}
+.symptom-card .check-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(148, 163, 184, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: transparent;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.symptom-card.selected .check-indicator {
+  background: var(--ha-teal, #14b8a6);
+  border-color: var(--ha-teal, #14b8a6);
+  color: #ffffff;
+}
+.category-btn {
+  border-radius: 20px;
+  padding: 0.4rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: transparent;
+  color: inherit;
+  transition: all 0.15s ease;
+}
+.category-btn:hover, .category-btn.active {
+  background: var(--ha-teal, #14b8a6);
+  border-color: var(--ha-teal, #14b8a6);
+  color: #ffffff !important;
+}
+.vital-box {
+  background: rgba(148, 163, 184, 0.05);
+  border: 1px solid var(--ha-border, rgba(148, 163, 184, 0.15));
+  border-radius: 12px;
+  padding: 1rem;
+  height: 100%;
+}
+.vital-badge {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--ha-ink-muted, #94a3b8);
+}
+</style>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <form method="POST" action="{{ url_for('patient.assess_health') }}" id="assessForm" data-loading novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <!-- STEP 1: Symptoms Selection -->
+      <div class="card content-card mb-4 animate-in" style="--delay: 0">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <div>
+              <h5 class="card-title mb-1 d-flex align-items-center">
+                <span class="badge bg-primary-subtle text-primary rounded-circle me-2 p-2">1</span>
+                What are you experiencing? <span class="text-danger ms-1">*</span>
+              </h5>
+              <p class="text-secondary small mb-0">Select any symptoms you have felt recently.</p>
+            </div>
+            <div id="selection-counter" class="badge bg-primary-subtle text-primary px-3 py-2 fs-6 rounded-pill">
+              0 symptoms selected
+            </div>
+          </div>
+
+          <!-- Search Bar -->
+          <div class="input-group mb-3">
+            <span class="input-group-text bg-body-secondary"><i class="bi bi-search"></i></span>
+            <input type="text" id="symptom-search" class="form-control" placeholder="Search symptoms (e.g. fever, cough, headache, chest pain...)" autocomplete="off">
+            <button class="btn btn-outline-secondary d-none" type="button" id="clear-search"><i class="bi bi-x-lg"></i></button>
+          </div>
+
+          <!-- Category Filters -->
+          <div class="d-flex flex-wrap gap-2 mb-4" id="category-pills">
+            <button type="button" class="category-btn active" data-filter="all">All (30)</button>
+            <button type="button" class="category-btn" data-filter="respiratory"><i class="bi bi-lungs me-1"></i>Respiratory</button>
+            <button type="button" class="category-btn" data-filter="cardiac"><i class="bi bi-heart-pulse me-1"></i>Heart & Chest</button>
+            <button type="button" class="category-btn" data-filter="metabolic"><i class="bi bi-activity me-1"></i>Metabolic</button>
+            <button type="button" class="category-btn" data-filter="neuro"><i class="bi bi-lightning-charge me-1"></i>Neuro & Energy</button>
+            <button type="button" class="category-btn" data-filter="digestive"><i class="bi bi-bandaid me-1"></i>Digestive</button>
+            <button type="button" class="category-btn" data-filter="muscle"><i class="bi bi-person-walking me-1"></i>Muscle & Skin</button>
+          </div>
+
+          <!-- Selected Symptoms Tray -->
+          <div id="selected-tray" class="p-3 mb-4 rounded-3 bg-body-secondary border d-none">
+            <div class="small fw-semibold text-secondary mb-2">Selected for AI Analysis:</div>
+            <div class="d-flex flex-wrap gap-2" id="selected-tags"></div>
+          </div>
+
+          <!-- Symptom Grid -->
+          {% set icons = {
+            'fever': 'bi-thermometer-high', 'cough': 'bi-lungs', 'sore_throat': 'bi-virus',
+            'runny_nose': 'bi-droplet', 'fatigue': 'bi-battery', 'headache': 'bi-lightning',
+            'dizziness': 'bi-compass', 'chest_pain': 'bi-heart-pulse-fill text-danger', 'shortness_of_breath': 'bi-wind',
+            'palpitations': 'bi-activity', 'frequent_urination': 'bi-clock-history', 'excessive_thirst': 'bi-cup-straw',
+            'increased_hunger': 'bi-egg-fried', 'unexplained_weight_loss': 'bi-graph-down-arrow', 'blurred_vision': 'bi-eye-slash',
+            'numbness_limbs': 'bi-hand-index', 'joint_pain': 'bi-person-arms-up', 'muscle_aches': 'bi-person-walking',
+            'abdominal_pain': 'bi-shield-shaded', 'nausea': 'bi-emoji-dizzy', 'vomiting': 'bi-arrow-down-up',
+            'diarrhea': 'bi-arrow-repeat', 'constipation': 'bi-pause-circle', 'heartburn': 'bi-fire text-warning',
+            'skin_rash': 'bi-patch-exclamation', 'swollen_feet': 'bi-arrows-expand', 'night_sweats': 'bi-water',
+            'sleep_issues': 'bi-moon-stars', 'anxiety': 'bi-heartbreak', 'loss_of_appetite': 'bi-slash-circle'
+          } %}
+
+          {% set categories = {
+            'fever': 'respiratory', 'cough': 'respiratory', 'sore_throat': 'respiratory', 'runny_nose': 'respiratory', 'shortness_of_breath': 'respiratory', 'night_sweats': 'respiratory',
+            'chest_pain': 'cardiac', 'palpitations': 'cardiac', 'dizziness': 'cardiac', 'swollen_feet': 'cardiac',
+            'frequent_urination': 'metabolic', 'excessive_thirst': 'metabolic', 'increased_hunger': 'metabolic', 'unexplained_weight_loss': 'metabolic', 'blurred_vision': 'metabolic',
+            'headache': 'neuro', 'fatigue': 'neuro', 'numbness_limbs': 'neuro', 'sleep_issues': 'neuro', 'anxiety': 'neuro', 'sleep_issues': 'neuro',
+            'abdominal_pain': 'digestive', 'nausea': 'digestive', 'vomiting': 'digestive', 'diarrhea': 'digestive', 'constipation': 'digestive', 'heartburn': 'digestive', 'loss_of_appetite': 'digestive',
+            'joint_pain': 'muscle', 'muscle_aches': 'muscle', 'skin_rash': 'muscle'
+          } %}
+
+          <div class="row g-2" id="symptoms-grid">
+            {% for key, label in symptoms.items() %}
+              {% set is_checked = (key in values.symptoms if values.symptoms is defined else false) %}
+              <div class="col-md-6 col-lg-6 symptom-item" data-category="{{ categories.get(key, 'all') }}" data-name="{{ label | lower }}">
+                <label class="symptom-card {{ 'selected' if is_checked else '' }}" for="sym_{{ key }}">
+                  <input class="d-none symptom-checkbox" type="checkbox" name="symptoms" id="sym_{{ key }}"
+                         value="{{ key }}" {{ 'checked' if is_checked }}>
+                  <div class="icon-box">
+                    <i class="bi {{ icons.get(key, 'bi-check2-circle') }}"></i>
+                  </div>
+                  <span class="symptom-title">{{ label }}</span>
+                  <div class="check-indicator">
+                    <i class="bi bi-check-lg"></i>
+                  </div>
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Demographics & Vitals -->
+      <div class="card content-card mb-4 animate-in" style="--delay: 1">
+        <div class="card-body p-4">
+          <h5 class="card-title mb-1 d-flex align-items-center">
+            <span class="badge bg-primary-subtle text-primary rounded-circle me-2 p-2">2</span>
+            Patient Vitals & Demographics
+          </h5>
+          <p class="text-secondary small mb-4">Vitals help the AI calculate personalized clinical risk thresholds.</p>
+
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold" for="age">Age <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                <input type="number" class="form-control" id="age" name="age"
+                       value="{{ values.age }}" min="1" max="120" placeholder="e.g. 32" required>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold" for="gender">Gender <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                <select class="form-select" id="gender" name="gender" required>
+                  <option value="" {{ 'selected' if not values.gender }}>Select gender…</option>
+                  <option value="male" {{ 'selected' if values.gender == 'male' }}>Male</option>
+                  <option value="female" {{ 'selected' if values.gender == 'female' }}>Female</option>
+                  <option value="other" {{ 'selected' if values.gender == 'other' }}>Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <h6 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-heart-pulse text-primary"></i> Optional Clinical Vitals
+            <span class="badge bg-secondary-subtle text-secondary fw-normal">Improves AI Accuracy</span>
+          </h6>
+
+          <div class="row g-3">
+            <div class="col-sm-6 col-md-4">
+              <div class="vital-box">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="form-label small fw-semibold mb-0" for="systolic_bp">Systolic BP</label>
+                  <span class="vital-badge">Normal: &lt;120</span>
+                </div>
+                <div class="input-group input-group-sm">
+                  <input type="number" class="form-control" id="systolic_bp" name="systolic_bp"
+                         value="{{ values.systolic_bp }}" min="60" max="260" placeholder="120">
+                  <span class="input-group-text">mmHg</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-md-4">
+              <div class="vital-box">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="form-label small fw-semibold mb-0" for="diastolic_bp">Diastolic BP</label>
+                  <span class="vital-badge">Normal: &lt;80</span>
+                </div>
+                <div class="input-group input-group-sm">
+                  <input type="number" class="form-control" id="diastolic_bp" name="diastolic_bp"
+                         value="{{ values.diastolic_bp }}" min="40" max="160" placeholder="80">
+                  <span class="input-group-text">mmHg</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-md-4">
+              <div class="vital-box">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="form-label small fw-semibold mb-0" for="heart_rate">Heart Rate</label>
+                  <span class="vital-badge">60-100 bpm</span>
+                </div>
+                <div class="input-group input-group-sm">
+                  <input type="number" class="form-control" id="heart_rate" name="heart_rate"
+                         value="{{ values.heart_rate }}" min="30" max="250" placeholder="72">
+                  <span class="input-group-text">bpm</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-md-4">
+              <div class="vital-box">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="form-label small fw-semibold mb-0" for="oxygen_level">Oxygen (SpO2)</label>
+                  <span class="vital-badge">95-100%</span>
+                </div>
+                <div class="input-group input-group-sm">
+                  <input type="number" class="form-control" id="oxygen_level" name="oxygen_level"
+                         value="{{ values.oxygen_level }}" min="40" max="100" placeholder="98">
+                  <span class="input-group-text">%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-md-4">
+              <div class="vital-box">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="form-label small fw-semibold mb-0" for="blood_sugar">Blood Sugar</label>
+                  <span class="vital-badge">70-140 mg/dL</span>
+                </div>
+                <div class="input-group input-group-sm">
+                  <input type="number" class="form-control" id="blood_sugar" name="blood_sugar"
+                         value="{{ values.blood_sugar }}" min="20" max="800" placeholder="95">
+                  <span class="input-group-text">mg/dL</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-md-4">
+              <div class="vital-box">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="form-label small fw-semibold mb-0" for="body_temperature">Temperature</label>
+                  <span class="vital-badge">36.5-37.5 °C</span>
+                </div>
+                <div class="input-group input-group-sm">
+                  <input type="number" class="form-control" id="body_temperature" name="body_temperature"
+                         value="{{ values.body_temperature }}" min="32" max="44" step="0.1" placeholder="36.6">
+                  <span class="input-group-text">°C</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button type="submit" class="btn btn-primary btn-lg w-100 py-3 shadow-lg fw-semibold" id="submitBtn">
+        <span class="btn-label"><i class="bi bi-stars me-2 fs-5"></i> Run AI Health Risk Assessment</span>
+        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Right Column: Info & Doctor Pipeline -->
+  <div class="col-lg-4">
+    <div class="card content-card mb-4 animate-in" style="--delay: 2">
+      <div class="card-body p-4">
+        <h6 class="fw-semibold mb-3 d-flex align-items-center">
+          <i class="bi bi-cpu-fill me-2 text-primary"></i> AI Health Assessment Flow
+        </h6>
+        <div class="d-flex gap-3 mb-3">
+          <div class="badge bg-primary-subtle text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">1</div>
+          <div>
+            <div class="fw-medium small">Symptom Cross-Matching</div>
+            <div class="text-secondary small">Evaluates over 30 clinical conditions based on symptom combinations.</div>
+          </div>
+        </div>
+        <div class="d-flex gap-3 mb-3">
+          <div class="badge bg-primary-subtle text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">2</div>
+          <div>
+            <div class="fw-medium small">Vitals & Lifestyle Scoring</div>
+            <div class="text-secondary small">Integrates your BMI, blood pressure, smoking, and medical history.</div>
+          </div>
+        </div>
+        <div class="d-flex gap-3">
+          <div class="badge bg-primary-subtle text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">3</div>
+          <div>
+            <div class="fw-medium small">Doctor Clinical Verification</div>
+            <div class="text-secondary small">Your assigned doctor verifies every prediction before confirming.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card content-card border-warning border-opacity-25 animate-in" style="--delay: 3">
+      <div class="card-body p-4">
+        <h6 class="fw-semibold text-warning d-flex align-items-center mb-2">
+          <i class="bi bi-shield-exclamation me-2"></i> Clinical Disclaimer
+        </h6>
+        <p class="small text-secondary mb-0">
+          HealthAI provides preventive screening guidance only. It is not an emergency response system. For acute chest pain or severe trauma, call local emergency services immediately.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const checkboxes = document.querySelectorAll(".symptom-checkbox");
+  const counter = document.getElementById("selection-counter");
+  const searchInput = document.getElementById("symptom-search");
+  const clearSearchBtn = document.getElementById("clear-search");
+  const categoryPills = document.querySelectorAll(".category-btn");
+  const items = document.querySelectorAll(".symptom-item");
+  const tray = document.getElementById("selected-tray");
+  const selectedTags = document.getElementById("selected-tags");
+
+  let currentCategory = "all";
+
+  function updateUI() {
+    let count = 0;
+    selectedTags.innerHTML = "";
+
+    checkboxes.forEach(cb => {
+      const card = cb.closest(".symptom-card");
+      if (cb.checked) {
+        count++;
+        card.classList.add("selected");
+        
+        // Add chip to selected tray
+        const title = card.querySelector(".symptom-title").textContent;
+        const tag = document.createElement("span");
+        tag.className = "badge bg-primary text-white p-2 d-inline-flex align-items-center gap-1";
+        tag.innerHTML = `${title} <i class="bi bi-x-circle ms-1" style="cursor:pointer;" title="Remove"></i>`;
+        tag.querySelector("i").addEventListener("click", (e) => {
+          e.stopPropagation();
+          cb.checked = false;
+          updateUI();
+        });
+        selectedTags.appendChild(tag);
+      } else {
+        card.classList.remove("selected");
+      }
+    });
+
+    counter.textContent = `${count} symptom${count === 1 ? '' : 's'} selected`;
+    if (count > 0) {
+      tray.classList.remove("d-none");
+    } else {
+      tray.classList.add("d-none");
+    }
+  }
+
+  // Handle checkbox clicks
+  checkboxes.forEach(cb => {
+    cb.addEventListener("change", updateUI);
+  });
+
+  // Filter & Search Handler
+  function filterItems() {
+    const query = searchInput.value.trim().toLowerCase();
+    if (query.length > 0) {
+      clearSearchBtn.classList.remove("d-none");
+    } else {
+      clearSearchBtn.classList.add("d-none");
+    }
+
+    items.forEach(item => {
+      const name = item.dataset.name;
+      const cat = item.dataset.category;
+
+      const matchesSearch = query === "" || name.includes(query);
+      const matchesCategory = currentCategory === "all" || cat === currentCategory;
+
+      if (matchesSearch && matchesCategory) {
+        item.classList.remove("d-none");
+      } else {
+        item.classList.add("d-none");
+      }
+    });
+  }
+
+  searchInput.addEventListener("input", filterItems);
+  clearSearchBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    filterItems();
+    searchInput.focus();
+  });
+
+  categoryPills.forEach(btn => {
+    btn.addEventListener("click", function() {
+      categoryPills.forEach(b => b.classList.remove("active"));
+      this.classList.add("active");
+      currentCategory = this.dataset.filter;
+      filterItems();
+    });
+  });
+
+  // Form Validation check on submit
+  document.getElementById("assessForm").addEventListener("submit", function(e) {
+    let hasSymptom = Array.from(checkboxes).some(cb => cb.checked);
+    if (!hasSymptom) {
+      e.preventDefault();
+      alert("Please select at least one symptom to run the AI health assessment.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  // Initialize
+  updateUI();
+});
+</script>
+{% endblock %}

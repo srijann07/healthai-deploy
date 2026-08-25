@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Health Information{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assess_health' }}" href="{{ url_for('patient.assess_health') }}">
+  <i class="bi bi-stars"></i> AI Health Check
+</a>
+<a class="nav-item {{ 'active' if request.endpoint in ['patient.predictions_page', 'patient.prediction_detail_page'] }}" href="{{ url_for('patient.predictions_page') }}">
+  <i class="bi bi-clipboard2-pulse"></i> My Assessments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.profile_page' }}" href="{{ url_for('patient.profile_page') }}">
+  <i class="bi bi-person-vcard"></i> Profile
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.health_page' }}" href="{{ url_for('patient.health_page') }}">
+  <i class="bi bi-heart-pulse"></i> Health Information
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assigned_doctor_page' }}" href="{{ url_for('patient.assigned_doctor_page') }}">
+  <i class="bi bi-person-badge"></i> My Doctor
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.appointments_page' }}" href="{{ url_for('patient.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.reports_page' }}" href="{{ url_for('patient.reports_page') }}">
+  <i class="bi bi-file-earmark-medical"></i> Medical Reports
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.change_password_page' }}" href="{{ url_for('patient.change_password_page') }}">
+  <i class="bi bi-shield-lock"></i> Change Password
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card content-card animate-in" style="--delay: 0">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-heart-pulse me-2 text-primary"></i>Basic health information</h5>
+        <p class="text-secondary small mb-4">Your doctor may see these details. Height and weight are used to calculate your BMI.</p>
+
+        <form method="POST" action="{{ url_for('patient.health_page') }}" data-loading novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="section" value="basic">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="form-label" for="date_of_birth">Date of birth</label>
+              <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
+                     value="{{ values.date_of_birth }}" required>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="gender">Gender</label>
+              <select class="form-select" id="gender" name="gender">
+                <option value="" {{ 'selected' if not values.gender }}>Prefer not to say</option>
+                <option value="male" {{ 'selected' if values.gender == 'male' }}>Male</option>
+                <option value="female" {{ 'selected' if values.gender == 'female' }}>Female</option>
+                <option value="other" {{ 'selected' if values.gender == 'other' }}>Other</option>
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="blood_group">Blood group <span class="text-secondary">(optional)</span></label>
+              <select class="form-select" id="blood_group" name="blood_group">
+                <option value="" {{ 'selected' if not values.blood_group }}>Not specified</option>
+                {% for group in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] %}
+                  <option value="{{ group }}" {{ 'selected' if values.blood_group == group }}>{{ group }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="emergency_contact">Emergency contact <span class="text-secondary">(optional)</span></label>
+              <input type="tel" class="form-control" id="emergency_contact" name="emergency_contact"
+                     value="{{ values.emergency_contact }}" placeholder="+91 98765 43210">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="height_cm">Height (cm) <span class="text-secondary">(30–250)</span></label>
+              <input type="number" class="form-control" id="height_cm" name="height_cm"
+                     value="{{ values.height_cm }}" min="30" max="250" step="0.1">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="weight_kg">Weight (kg) <span class="text-secondary">(5–300)</span></label>
+              <input type="number" class="form-control" id="weight_kg" name="weight_kg"
+                     value="{{ values.weight_kg }}" min="5" max="300" step="0.1">
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="address">Address <span class="text-secondary">(optional)</span></label>
+              <input type="text" class="form-control" id="address" name="address"
+                     value="{{ values.address }}" maxlength="255">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary mt-4">
+            <span class="btn-label"><i class="bi bi-check-lg me-1"></i>Save health information</span>
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card content-card animate-in" style="--delay: 1">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-clipboard2-pulse me-2 text-primary"></i>Medical history</h5>
+        <p class="text-secondary small mb-4">This information helps the AI risk assessment and your doctor — be as accurate as you can.</p>
+
+        <form method="POST" action="{{ url_for('patient.health_page') }}" data-loading novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="section" value="history">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label" for="allergies">Allergies</label>
+              <textarea class="form-control" id="allergies" name="allergies" rows="2"
+                        maxlength="2000" placeholder="e.g. penicillin, peanuts">{{ values.allergies }}</textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="chronic_conditions">Chronic conditions</label>
+              <textarea class="form-control" id="chronic_conditions" name="chronic_conditions" rows="2"
+                        maxlength="2000" placeholder="e.g. diabetes, hypertension">{{ values.chronic_conditions }}</textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="previous_diseases">Previous diseases</label>
+              <textarea class="form-control" id="previous_diseases" name="previous_diseases" rows="2"
+                        maxlength="2000" placeholder="e.g. pneumonia in 2021">{{ values.previous_diseases }}</textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="current_medications">Current medications</label>
+              <textarea class="form-control" id="current_medications" name="current_medications" rows="2"
+                        maxlength="2000" placeholder="e.g. metformin 500mg, twice a day">{{ values.current_medications }}</textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="family_history">Family history</label>
+              <textarea class="form-control" id="family_history" name="family_history" rows="2"
+                        maxlength="2000" placeholder="e.g. father has heart disease">{{ values.family_history }}</textarea>
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label" for="smoking_status">Smoking</label>
+              <select class="form-select" id="smoking_status" name="smoking_status">
+                <option value="" {{ 'selected' if not values.smoking_status }}>Prefer not to say</option>
+                <option value="never" {{ 'selected' if values.smoking_status == 'never' }}>Never</option>
+                <option value="former" {{ 'selected' if values.smoking_status == 'former' }}>Former smoker</option>
+                <option value="occasional" {{ 'selected' if values.smoking_status == 'occasional' }}>Occasional</option>
+                <option value="regular" {{ 'selected' if values.smoking_status == 'regular' }}>Regular</option>
+              </select>
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label" for="alcohol_consumption">Alcohol</label>
+              <select class="form-select" id="alcohol_consumption" name="alcohol_consumption">
+                <option value="" {{ 'selected' if not values.alcohol_consumption }}>Prefer not to say</option>
+                <option value="none" {{ 'selected' if values.alcohol_consumption == 'none' }}>None</option>
+                <option value="occasional" {{ 'selected' if values.alcohol_consumption == 'occasional' }}>Occasional</option>
+                <option value="regular" {{ 'selected' if values.alcohol_consumption == 'regular' }}>Regular</option>
+              </select>
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label" for="exercise_frequency">Exercise</label>
+              <select class="form-select" id="exercise_frequency" name="exercise_frequency">
+                <option value="" {{ 'selected' if not values.exercise_frequency }}>Prefer not to say</option>
+                <option value="daily" {{ 'selected' if values.exercise_frequency == 'daily' }}>Daily</option>
+                <option value="several_per_week" {{ 'selected' if values.exercise_frequency == 'several_per_week' }}>Several times a week</option>
+                <option value="few_per_week" {{ 'selected' if values.exercise_frequency == 'few_per_week' }}>A few times a month</option>
+                <option value="rarely" {{ 'selected' if values.exercise_frequency == 'rarely' }}>Rarely</option>
+                <option value="never" {{ 'selected' if values.exercise_frequency == 'never' }}>Never</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary mt-4">
+            <span class="btn-label"><i class="bi bi-check-lg me-1"></i>Save medical history</span>
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

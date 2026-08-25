@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Patient — {{ patient.user.full_name }}{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'doctor.patients_page' or request.endpoint == 'doctor.patient_detail_page' }}" href="{{ url_for('doctor.patients_page') }}">
+  <i class="bi bi-people"></i> My Patients
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'doctor.predictions_page' or request.endpoint == 'doctor.review_prediction_page' }}" href="{{ url_for('doctor.predictions_page') }}">
+  <i class="bi bi-clipboard2-check"></i> Review Queue
+  {% if pending_count %}
+    <span class="badge rounded-pill text-bg-danger ms-auto">{{ pending_count }}</span>
+  {% endif %}
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'doctor.appointments_page' }}" href="{{ url_for('doctor.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card content-card animate-in" style="--delay: 0">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="avatar" style="width: 56px; height: 56px; font-size: 1.1rem;">
+            {{ patient.user.first_name[0] }}{{ patient.user.last_name[0] }}
+          </div>
+          <div>
+            <h5 class="card-title mb-0">{{ patient.user.full_name }}</h5>
+            <div class="text-secondary small">{{ patient.user.email }}</div>
+          </div>
+        </div>
+        <dl class="row small mb-0">
+          <dt class="col-5 text-secondary">Phone</dt>
+          <dd class="col-7">{{ patient.user.phone or '—' }}</dd>
+          <dt class="col-5 text-secondary">Age</dt>
+          <dd class="col-7">{{ patient.age if patient.age is not none else '—' }}</dd>
+          <dt class="col-5 text-secondary">Gender</dt>
+          <dd class="col-7">{{ patient.gender or '—' }}</dd>
+          <dt class="col-5 text-secondary">Blood group</dt>
+          <dd class="col-7">{{ patient.blood_group or '—' }}</dd>
+          <dt class="col-5 text-secondary">BMI</dt>
+          <dd class="col-7">{{ patient.bmi if patient.bmi is not none else '—' }}</dd>
+          <dt class="col-5 text-secondary">Address</dt>
+          <dd class="col-7">{{ patient.address or '—' }}</dd>
+        </dl>
+        <hr>
+        <h6 class="fw-semibold">Medical history</h6>
+        {% set history = patient.medical_history %}
+        {% if history %}
+          <dl class="row small mb-0">
+            <dt class="col-5 text-secondary">Allergies</dt>
+            <dd class="col-7">{{ history.allergies or '—' }}</dd>
+            <dt class="col-5 text-secondary">Chronic conditions</dt>
+            <dd class="col-7">{{ history.chronic_conditions or '—' }}</dd>
+            <dt class="col-5 text-secondary">Previous diseases</dt>
+            <dd class="col-7">{{ history.previous_diseases or '—' }}</dd>
+            <dt class="col-5 text-secondary">Medications</dt>
+            <dd class="col-7">{{ history.current_medications or '—' }}</dd>
+            <dt class="col-5 text-secondary">Family history</dt>
+            <dd class="col-7">{{ history.family_history or '—' }}</dd>
+            <dt class="col-5 text-secondary">Smoking</dt>
+            <dd class="col-7">{{ history.smoking_status or '—' }}</dd>
+            <dt class="col-5 text-secondary">Alcohol</dt>
+            <dd class="col-7">{{ history.alcohol_consumption or '—' }}</dd>
+            <dt class="col-5 text-secondary">Exercise</dt>
+            <dd class="col-7">{{ history.exercise_frequency or '—' }}</dd>
+          </dl>
+        {% else %}
+          <p class="text-secondary small mb-0">No medical history recorded.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card content-card animate-in" style="--delay: 1">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-clipboard2-pulse me-2 text-primary"></i>AI assessments</h5>
+        {% if predictions %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Risk</th>
+                  <th>Condition</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in predictions %}
+                  <tr>
+                    <td class="text-nowrap">{{ p.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+                    <td><span class="badge text-bg-{{ p.risk_badge }}">{{ p.risk_level }}</span></td>
+                    <td>{{ p.possible_disease }}</td>
+                    <td>
+                      {% if p.status == 'pending_review' %}
+                        <span class="badge text-bg-warning">Pending</span>
+                      {% elif p.status == 'approved' %}
+                        <span class="badge text-bg-success">Approved</span>
+                      {% else %}
+                        <span class="badge text-bg-secondary">Rejected</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end">
+                      {% if p.status == 'pending_review' %}
+                        <a href="{{ url_for('doctor.review_prediction_page', prediction_id=p.id) }}"
+                           class="btn btn-sm btn-primary">Review</a>
+                      {% else %}
+                        <a href="{{ url_for('doctor.review_prediction_page', prediction_id=p.id) }}"
+                           class="btn btn-sm btn-outline-primary">View</a>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-clipboard2-pulse"></i>
+            <p>This patient hasn't run an AI health check yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

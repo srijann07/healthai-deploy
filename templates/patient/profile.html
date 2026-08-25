@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block sidebar_links %}
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assess_health' }}" href="{{ url_for('patient.assess_health') }}">
+  <i class="bi bi-stars"></i> AI Health Check
+</a>
+<a class="nav-item {{ 'active' if request.endpoint in ['patient.predictions_page', 'patient.prediction_detail_page'] }}" href="{{ url_for('patient.predictions_page') }}">
+  <i class="bi bi-clipboard2-pulse"></i> My Assessments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.profile_page' }}" href="{{ url_for('patient.profile_page') }}">
+  <i class="bi bi-person-vcard"></i> Profile
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.health_page' }}" href="{{ url_for('patient.health_page') }}">
+  <i class="bi bi-heart-pulse"></i> Health Information
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.assigned_doctor_page' }}" href="{{ url_for('patient.assigned_doctor_page') }}">
+  <i class="bi bi-person-badge"></i> My Doctor
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.appointments_page' }}" href="{{ url_for('patient.appointments_page') }}">
+  <i class="bi bi-calendar2-check"></i> Appointments
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.reports_page' }}" href="{{ url_for('patient.reports_page') }}">
+  <i class="bi bi-file-earmark-medical"></i> Medical Reports
+</a>
+<a class="nav-item {{ 'active' if request.endpoint == 'patient.change_password_page' }}" href="{{ url_for('patient.change_password_page') }}">
+  <i class="bi bi-shield-lock"></i> Change Password
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card content-card animate-in" style="--delay: 0">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-person-vcard me-2 text-primary"></i>Personal details</h5>
+        <p class="text-secondary small mb-4">Your name and contact details. Your email address is your sign-in identity and cannot be changed here.</p>
+
+        <form method="POST" action="{{ url_for('patient.profile_page') }}" data-loading novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="form-label" for="first_name">First name</label>
+              <input type="text" class="form-control" id="first_name" name="first_name"
+                     value="{{ values.first_name }}" required autocomplete="given-name">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="last_name">Last name</label>
+              <input type="text" class="form-control" id="last_name" name="last_name"
+                     value="{{ values.last_name }}" required autocomplete="family-name">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="email">Email address</label>
+              <input type="email" class="form-control" id="email" value="{{ email }}" disabled>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="phone">Phone <span class="text-secondary">(optional)</span></label>
+              <input type="tel" class="form-control" id="phone" name="phone"
+                     value="{{ values.phone }}" autocomplete="tel">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary mt-4">
+            <span class="btn-label"><i class="bi bi-check-lg me-1"></i>Save changes</span>
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card content-card animate-in" style="--delay: 1">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-shield-lock me-2 text-primary"></i>Account security</h5>
+        <p class="text-secondary small">Keep your account secure by choosing a strong password that you don't reuse elsewhere.</p>
+        <a class="btn btn-outline-primary" href="{{ url_for('patient.change_password_page') }}">
+          <i class="bi bi-key me-1"></i>Change password
+        </a>
+      </div>
+    </div>
+
+    <div class="card content-card mt-4 animate-in" style="--delay: 2">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-heart-pulse me-2 text-primary"></i>Health information</h5>
+        <p class="text-secondary small mb-0">
+          Your vitals, medical history and lifestyle details feed into the AI risk
+          assessment and help doctors review your case. Add them in
+          <a href="{{ url_for('patient.health_page') }}">Health Information</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
