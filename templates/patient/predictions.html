@@ -74,7 +74,11 @@
                     <span class="badge text-bg-secondary">Doctor disagreed</span>
                   {% endif %}
                 </td>
-                <td class="text-end">
+                <td class="text-end text-nowrap">
+                  <a href="{{ url_for('patient.download_prediction_pdf', prediction_id=p.id) }}"
+                     target="_blank" class="btn btn-sm btn-outline-secondary me-1" title="Download PDF Report">
+                    <i class="bi bi-file-earmark-pdf"></i> PDF
+                  </a>
                   <a href="{{ url_for('patient.prediction_detail_page', prediction_id=p.id) }}"
                      class="btn btn-sm btn-outline-primary">View</a>
                 </td>

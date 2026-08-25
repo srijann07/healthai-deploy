@@ -61,6 +61,12 @@ patient_bp.add_url_rule(
     endpoint="prediction_detail_page",
 )
 patient_bp.add_url_rule(
+    "/patient/predictions/<int:prediction_id>/pdf",
+    view_func=patient_controller.download_prediction_pdf,
+    methods=["GET"],
+    endpoint="download_prediction_pdf",
+)
+patient_bp.add_url_rule(
     "/patient/doctor",
     view_func=patient_controller.assigned_doctor_page,
     methods=["GET"],

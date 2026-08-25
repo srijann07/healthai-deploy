@@ -1,5 +1,4 @@
-"""Request handling for the patient's own profile, health information and reports."""
-
+import io
 from datetime import datetime
 
 from flask import (
@@ -10,6 +9,7 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_file,
     send_from_directory,
     url_for,
 )
@@ -411,6 +411,29 @@ def prediction_detail_page(prediction_id: int):
     if prediction is None or prediction.patient_id != user.patient_profile.id:
         abort(404)
     return render_template("patient/prediction_detail.html", prediction=prediction)
+
+
+@role_required(Role.PATIENT, Role.DOCTOR, Role.ADMIN)
+def download_prediction_pdf(prediction_id: int):
+    """Download or view the clinical PDF report for an AI assessment."""
+    user = get_current_user()
+    prediction = db.session.get(Prediction, prediction_id)
+    if prediction is None:
+        abort(404)
+
+    # Permission: patient must own it, or user is doctor/admin
+    if user.has_role(Role.PATIENT) and prediction.patient_id != user.patient_profile.id:
+        abort(403)
+
+    from services import pdf_service
+
+    pdf_bytes = pdf_service.generate_assessment_pdf(prediction)
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype="application/pdf",
+        as_attachment=False,
+        download_name=f"HealthAI_Assessment_{prediction.id}.pdf",
+    )
 
 
 # ----------------------------------------------------------------------

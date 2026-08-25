@@ -38,7 +38,12 @@
             <h5 class="card-title mb-1"><i class="bi bi-clipboard2-pulse me-2 text-primary"></i>Assessment #{{ prediction.id }}</h5>
             <span class="text-secondary small">{{ prediction.created_at.strftime('%d %b %Y, %H:%M') }} · Engine {{ prediction.model_version }}</span>
           </div>
-          <span class="badge text-bg-{{ prediction.risk_badge }} fs-6">{{ prediction.risk_level }} risk</span>
+          <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('patient.download_prediction_pdf', prediction_id=prediction.id) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF
+            </a>
+            <span class="badge text-bg-{{ prediction.risk_badge }} fs-6">{{ prediction.risk_level }} risk</span>
+          </div>
         </div>
 
         <div class="row g-3 mb-4">
@@ -142,6 +147,25 @@
   </div>
 
   <div class="col-lg-4">
+    <!-- Clinical PDF Report Download Card -->
+    <div class="card content-card mb-4 animate-in" style="--delay: 0.5">
+      <div class="card-body">
+        <h5 class="card-title d-flex align-items-center justify-content-between mb-2">
+          <span><i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Clinical PDF Report</span>
+          <span class="badge bg-success-subtle text-success">Archived</span>
+        </h5>
+        <p class="small text-secondary mb-3">
+          Your official medical screening report containing symptom biomarkers, vitals, and doctor notes is available for download and printing.
+        </p>
+        <a href="{{ url_for('patient.download_prediction_pdf', prediction_id=prediction.id) }}" target="_blank" class="btn btn-primary w-100 mb-2">
+          <i class="bi bi-download me-2"></i> Download / Print PDF Report
+        </a>
+        <a href="{{ url_for('patient.reports_page') }}" class="btn btn-outline-secondary btn-sm w-100">
+          <i class="bi bi-folder2-open me-1"></i> View All Medical Reports
+        </a>
+      </div>
+    </div>
+
     <div class="card content-card animate-in" style="--delay: 1">
       <div class="card-body">
         <h5 class="card-title"><i class="bi bi-hourglass-split me-2 text-primary"></i>Review status</h5>
@@ -159,7 +183,7 @@
           </p>
         {% endif %}
         <hr>
-        <a href="{{ url_for('patient.assess_health') }}" class="btn btn-primary btn-sm w-100">
+        <a href="{{ url_for('patient.assess_health') }}" class="btn btn-outline-primary btn-sm w-100">
           <i class="bi bi-stars me-1"></i>Run another health check
         </a>
       </div>
