@@ -136,6 +136,15 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 1000);
   }
 
+  window.fillOtp = function(code) {
+    const input = document.getElementById("otp_code");
+    if (input) {
+      input.value = code;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      document.getElementById("btn-submit-otp")?.focus();
+    }
+  };
+
   if (btnSendOtp) {
     btnSendOtp.addEventListener("click", async function() {
       const phone = phoneInput.value.trim();
@@ -165,7 +174,13 @@ document.addEventListener("DOMContentLoaded", function() {
         if (response.ok && data.success) {
           let alertMsg = `<strong>Code Sent!</strong> ${data.message}`;
           if (data.dev_otp) {
-            alertMsg += `<div class="mt-2 pt-2 border-top border-success-subtle small"><span class="badge bg-success text-white me-1">Demo Mode</span> Verification Code: <strong>${data.dev_otp}</strong> <a href="javascript:void(0)" class="text-success fw-bold text-decoration-underline ms-2" onclick="document.getElementById('otp').value='${data.dev_otp}';">Click to fill code</a></div>`;
+            otpInput.value = data.dev_otp;
+            alertMsg += `<div class="mt-2 pt-2 border-top border-success-subtle d-flex align-items-center justify-content-between flex-wrap gap-2 small">
+              <span><span class="badge bg-success text-white me-1">Demo Mode</span> Code: <strong>${data.dev_otp}</strong></span>
+              <button type="button" class="btn btn-sm btn-success py-0 px-2 fw-semibold" onclick="fillOtp('${data.dev_otp}')">
+                <i class="bi bi-magic me-1"></i> Auto-fill OTP
+              </button>
+            </div>`;
           }
           showAlert(alertMsg, "success");
           startCooldown(60);
