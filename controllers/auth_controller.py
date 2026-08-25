@@ -138,6 +138,7 @@ def send_otp():
                 "success": True,
                 "message": f"Verification code sent to {res['phone']}. Please check your SMS.",
                 "phone": res["phone"],
+                "dev_otp": res.get("dev_otp"),
                 "expires_in_seconds": res["expires_in_seconds"],
             }
         )

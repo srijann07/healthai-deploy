@@ -196,15 +196,16 @@ def generate_and_send_otp(
     # 4. Dispatch OTP
     _send_sms_notification(normalized_phone, otp_code, purpose)
 
-    is_dev = (
+    show_demo_otp = (
         current_app.config.get("DEBUG", False)
         or current_app.config.get("TESTING", False)
         or current_app.config.get("ENV") == "development"
+        or os.environ.get("DEMO_MODE", "true").lower() in ("true", "1", "yes")
     )
     return {
         "phone": normalized_phone,
         "expires_in_seconds": OTP_EXPIRY_MINUTES * 60,
-        "dev_otp": otp_code if is_dev else None,
+        "dev_otp": otp_code if show_demo_otp else None,
     }
 
 
