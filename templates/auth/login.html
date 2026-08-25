@@ -174,11 +174,14 @@ document.addEventListener("DOMContentLoaded", function() {
         if (response.ok && data.success) {
           let alertMsg = `<strong>Code Sent!</strong> ${data.message}`;
           if (data.dev_otp) {
+            // 1. Immediately auto-fill the input box
             otpInput.value = data.dev_otp;
+            
+            // 2. Render prominent clickable auto-fill banner
             alertMsg += `<div class="mt-2 pt-2 border-top border-success-subtle d-flex align-items-center justify-content-between flex-wrap gap-2 small">
-              <span><span class="badge bg-success text-white me-1">Demo Mode</span> Code: <strong>${data.dev_otp}</strong></span>
-              <button type="button" class="btn btn-sm btn-success py-0 px-2 fw-semibold" onclick="fillOtp('${data.dev_otp}')">
-                <i class="bi bi-magic me-1"></i> Auto-fill OTP
+              <span><span class="badge bg-success text-white me-1">Demo Mode</span> Verification Code: <strong class="fs-6">${data.dev_otp}</strong></span>
+              <button type="button" class="btn btn-sm btn-success py-1 px-3 fw-bold shadow-sm" onclick="document.getElementById('otp_code').value='${data.dev_otp}'; document.getElementById('otp_code').focus();">
+                <i class="bi bi-magic me-1"></i> Auto-fill (${data.dev_otp})
               </button>
             </div>`;
           }
