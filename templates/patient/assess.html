@@ -215,6 +215,19 @@
               </div>
             {% endfor %}
           </div>
+
+          <!-- Other / Additional Symptoms Section -->
+          <div class="mt-4 pt-3 border-top">
+            <label for="other_symptoms" class="form-label fw-semibold d-flex align-items-center gap-2 mb-1">
+              <i class="bi bi-pencil-square text-primary"></i> Other Symptoms or Discomfort
+              <span class="badge bg-secondary-subtle text-secondary fw-normal">Optional</span>
+            </label>
+            <p class="text-secondary small mb-2">
+              If you are experiencing symptoms not listed above, describe them here (e.g. ear pain, tingling sensation, sudden chills, localized swelling, back spasms):
+            </p>
+            <textarea class="form-control" id="other_symptoms" name="other_symptoms" rows="3"
+                      placeholder="e.g. Severe lower back pain radiating to left leg for 3 days, mild ear ringing, and sudden chills in the evening...">{{ values.other_symptoms if values.other_symptoms is defined else '' }}</textarea>
+          </div>
         </div>
       </div>
 
@@ -490,9 +503,11 @@ document.addEventListener("DOMContentLoaded", function() {
   // Form Validation check on submit
   document.getElementById("assessForm").addEventListener("submit", function(e) {
     let hasSymptom = Array.from(checkboxes).some(cb => cb.checked);
-    if (!hasSymptom) {
+    let otherVal = (document.getElementById("other_symptoms").value || "").trim();
+    let hasOther = otherVal.length > 0;
+    if (!hasSymptom && !hasOther) {
       e.preventDefault();
-      alert("Please select at least one symptom to run the AI health assessment.");
+      alert("Please select at least one symptom or describe your symptoms in 'Other Symptoms'.");
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   });

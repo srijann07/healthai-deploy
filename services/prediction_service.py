@@ -37,16 +37,23 @@ _RANGES = {
 def run_assessment(patient: Patient, form_data: dict) -> Prediction:
     """Validate the assessment form, run the engine and persist the result."""
     symptoms = [
-        s for s in (form_data.getlist("symptoms") or []) if s in health_analysis.SYMPTOM_CONDITIONS
+        s
+        for s in (form_data.getlist("symptoms") or [])
+        if s in health_analysis.SYMPTOM_CONDITIONS
     ]
-    if not symptoms:
-        raise PredictionError("Select at least one symptom to run the analysis.")
+    other_symptoms = (form_data.get("other_symptoms") or "").strip()
+    if not symptoms and not other_symptoms:
+        raise PredictionError(
+            "Please select at least one symptom or describe your symptoms in 'Other symptoms'."
+        )
 
     age = v.validate_number(form_data.get("age"), "Age", 1, 120, integer=True)
     gender = v.validate_choice(form_data.get("gender") or "", "Gender", v.GENDERS)
 
     vitals = {
-        key: v.validate_optional_number(form_data.get(key) or "", key.replace("_", " "), lo, hi)
+        key: v.validate_optional_number(
+            form_data.get(key) or "", key.replace("_", " "), lo, hi
+        )
         for key, (lo, hi) in _RANGES.items()
     }
 
@@ -58,13 +65,23 @@ def run_assessment(patient: Patient, form_data: dict) -> Prediction:
         "height_cm": patient.height_cm,
         "weight_kg": patient.weight_kg,
         "bmi": patient.bmi,
-        "chronic_conditions": (history.chronic_conditions or "") if history else "",
-        "previous_diseases": (history.previous_diseases or "") if history else "",
-        "current_medicines": (history.current_medications or "") if history else "",
+        "chronic_conditions": (history.chronic_conditions or "")
+        if history
+        else "",
+        "previous_diseases": (history.previous_diseases or "")
+        if history
+        else "",
+        "current_medicines": (history.current_medications or "")
+        if history
+        else "",
         "family_history": (history.family_history or "") if history else "",
         "smoking_status": (history.smoking_status or "") if history else "",
-        "alcohol_consumption": (history.alcohol_consumption or "") if history else "",
-        "exercise_frequency": (history.exercise_frequency or "") if history else "",
+        "alcohol_consumption": (history.alcohol_consumption or "")
+        if history
+        else "",
+        "exercise_frequency": (history.exercise_frequency or "")
+        if history
+        else "",
     }
     inputs.update(vitals)
 
@@ -74,6 +91,7 @@ def run_assessment(patient: Patient, form_data: dict) -> Prediction:
         patient=patient,
         # Input snapshot
         symptoms_list=symptoms,
+        other_symptoms=other_symptoms or None,
         age=age,
         gender=gender,
         height_cm=patient.height_cm,

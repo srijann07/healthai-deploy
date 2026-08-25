@@ -23,6 +23,7 @@ class Prediction(db.Model):
 
     # --- Input snapshot (vitals as entered at prediction time) ----------
     symptoms = db.Column(db.Text, nullable=False, default="[]")  # JSON list
+    other_symptoms = db.Column(db.Text)  # Free-text custom symptoms
     age = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.String(10), nullable=False)
     height_cm = db.Column(db.Float)

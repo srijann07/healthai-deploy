@@ -220,9 +220,15 @@ def generate_assessment_pdf(prediction: Prediction) -> bytes:
 
     vitals_table_data = [
         [Paragraph("<b>Active Symptoms:</b>", body_bold), Paragraph(symptoms_text, body_style)],
+    ]
+    if getattr(prediction, "other_symptoms", None):
+        vitals_table_data.append(
+            [Paragraph("<b>Other Symptoms:</b>", body_bold), Paragraph(prediction.other_symptoms, body_style)]
+        )
+    vitals_table_data.extend([
         [Paragraph("<b>Recorded Vitals:</b>", body_bold), Paragraph(vitals_summary, body_style)],
         [Paragraph("<b>Lifestyle Profile:</b>", body_bold), Paragraph(f"Smoking: {prediction.smoking_status or 'Non-smoker'} | Alcohol: {prediction.alcohol_consumption or 'None'} | Exercise: {prediction.exercise_frequency or 'Sedentary'}", body_style)],
-    ]
+    ])
     vitals_table = Table(vitals_table_data, colWidths=[120, 410])
     vitals_table.setStyle(
         TableStyle([
