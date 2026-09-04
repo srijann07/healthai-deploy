@@ -1,0 +1,31 @@
+symptom_id,symptom_name,symptom_code,category,primary_condition,weight,secondary_condition,secondary_weight,recommended_specialist
+1,Fever,fever,respiratory,Viral infection,2.5,Influenza,1.0,General Physician
+2,Persistent cough,cough,respiratory,Upper respiratory infection,1.5,Bronchitis,1.5,General Physician
+3,Sore throat,sore_throat,respiratory,Upper respiratory infection,1.5,Viral infection,0.5,General Physician
+4,Runny nose,runny_nose,respiratory,Upper respiratory infection,1.5,Influenza,0.5,General Physician
+5,Constant fatigue / weakness,fatigue,neuro,Anaemia,1.5,Chronic fatigue,1.0,General Physician
+6,Headache,headache,neuro,Tension headache,1.5,Migraine,1.0,General Physician
+7,Dizziness,dizziness,neuro,Low blood pressure,2.0,Vertigo,1.5,General Physician
+8,Chest pain,chest_pain,cardiac,Cardiac concern,3.5,Acid reflux,1.0,Cardiologist
+9,Shortness of breath,shortness_of_breath,respiratory,Respiratory concern,3.5,Cardiac concern,2.0,Pulmonologist
+10,Racing or irregular heartbeat,palpitations,cardiac,Arrhythmia,3.0,Cardiac concern,1.5,Cardiologist
+11,Frequent urination,frequent_urination,metabolic,Diabetes risk,3.5,Kidney concern,1.0,Endocrinologist
+12,Excessive thirst,excessive_thirst,metabolic,Diabetes risk,2.5,Dehydration,1.0,Endocrinologist
+13,Increased hunger,increased_hunger,metabolic,Diabetes risk,2.0,Thyroid imbalance,1.0,Endocrinologist
+14,Unexplained weight loss,unexplained_weight_loss,metabolic,Diabetes risk,1.5,Thyroid imbalance,1.5,Endocrinologist
+15,Blurred vision,blurred_vision,metabolic,Diabetes risk,2.0,Vision concern,1.5,Ophthalmologist
+16,Numbness / tingling in hands or feet,numbness_limbs,neuro,Neuropathy risk,2.5,Diabetes risk,1.0,Neurologist
+17,Joint pain or stiffness,joint_pain,muscle,Arthritis,2.5,Inflammation,1.0,Orthopaedist
+18,Muscle aches,muscle_aches,muscle,Viral infection,1.0,Fibromyalgia,0.5,General Physician
+19,Abdominal pain,abdominal_pain,digestive,Gastritis,2.0,Digestive concern,1.5,Gastroenterologist
+20,Nausea,nausea,digestive,Gastritis,1.5,Viral infection,0.5,Gastroenterologist
+21,Vomiting,vomiting,digestive,Gastroenteritis,2.0,Gastritis,1.0,General Physician
+22,Diarrhoea,diarrhea,digestive,Gastroenteritis,2.0,Food poisoning,1.0,General Physician
+23,Constipation,constipation,digestive,Digestive concern,1.5,Dehydration,0.5,Gastroenterologist
+24,Heartburn / acidity,heartburn,digestive,Acid reflux,2.0,Gastritis,1.0,Gastroenterologist
+25,Skin rash,skin_rash,muscle,Dermatitis,2.0,Allergy,1.0,Dermatologist
+26,Swollen ankles or feet,swollen_feet,cardiac,Cardiac concern,2.5,Kidney concern,2.0,Cardiologist
+27,Night sweats,night_sweats,respiratory,Viral infection,1.0,Hormonal imbalance,0.5,General Physician
+28,Difficulty sleeping,sleep_issues,neuro,Sleep disorder,1.5,Anxiety disorder,1.0,General Physician
+29,Anxiety or excessive stress,anxiety,neuro,Anxiety disorder,1.5,Stress response,1.0,Psychologist
+30,Loss of appetite,loss_of_appetite,digestive,Digestive concern,1.0,Viral infection,0.5,Gastroenterologist
