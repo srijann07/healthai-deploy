@@ -106,12 +106,13 @@ def set_appointment_status(
     ) == appointment.doctor_id
     # Notify the party that did not perform the action.
     if is_doctor:
+        status_label = "Approved & Confirmed" if new_status == Appointment.STATUS_CONFIRMED else new_status.capitalize()
         notify(
             appointment.patient.user_id,
-            f"Appointment {new_status}",
-            f"Your appointment on "
+            f"Appointment {status_label}",
+            f"Your consultation scheduled for "
             f"{appointment.scheduled_at.strftime('%d %b %Y, %H:%M')} was "
-            f"{new_status} by your doctor.",
+            f"{status_label.lower()} by Dr. {appointment.doctor.user.full_name if appointment.doctor and appointment.doctor.user else 'your doctor'}.",
             "system",
             link="/patient/appointments",
         )

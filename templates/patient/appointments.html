@@ -71,6 +71,23 @@
   </div>
 
   <div class="col-lg-7">
+    {% set approved_appts = appointments | selectattr('status', 'equalto', 'confirmed') | list %}
+    {% if approved_appts %}
+      <div class="alert alert-success border border-success-subtle shadow-sm d-flex align-items-center gap-3 mb-4 animate-in" role="alert">
+        <div class="rounded-circle p-2 bg-success text-white">
+          <i class="bi bi-calendar-check-fill fs-5"></i>
+        </div>
+        <div class="flex-grow-1">
+          <div class="fw-bold fs-6">Appointment Approved by Doctor!</div>
+          <div class="small">
+            Dr. {{ approved_appts[0].doctor.user.full_name }} approved your visit scheduled for
+            <strong>{{ approved_appts[0].scheduled_at.strftime('%d %b %Y at %I:%M %p') }}</strong>.
+          </div>
+        </div>
+        <span class="badge bg-success text-white px-3 py-2">Approved</span>
+      </div>
+    {% endif %}
+
     <div class="card content-card animate-in" style="--delay: 1">
       <div class="card-body">
         <h5 class="card-title"><i class="bi bi-calendar3 me-2 text-primary"></i>Your appointments</h5>
@@ -96,11 +113,11 @@
                     <td class="small">{{ a.reason }}</td>
                     <td>
                       {% if a.status == 'pending' %}
-                        <span class="badge text-bg-warning">Pending</span>
+                        <span class="badge text-bg-warning"><i class="bi bi-clock-history me-1"></i>Pending Review</span>
                       {% elif a.status == 'confirmed' %}
-                        <span class="badge text-bg-success">Confirmed</span>
+                        <span class="badge bg-success text-white py-1 px-2 fw-semibold"><i class="bi bi-patch-check-fill me-1"></i>Approved by Doctor</span>
                       {% elif a.status == 'completed' %}
-                        <span class="badge text-bg-primary">Completed</span>
+                        <span class="badge text-bg-primary"><i class="bi bi-check2-all me-1"></i>Completed</span>
                       {% else %}
                         <span class="badge text-bg-secondary">Cancelled</span>
                       {% endif %}

@@ -54,6 +54,18 @@ def dashboard_redirect():
 def patient_dashboard():
     user = get_current_user()
     patient = user.patient_profile
+    from models.appointment import Appointment
+
+    upcoming_appointment = (
+        patient.appointments.filter(
+            Appointment.status.in_([Appointment.STATUS_PENDING, Appointment.STATUS_CONFIRMED])
+        )
+        .order_by(Appointment.scheduled_at.asc())
+        .first()
+        if patient
+        else None
+    )
+
     return render_template(
         "dashboard/patient.html",
         patient=patient,
@@ -64,6 +76,7 @@ def patient_dashboard():
             if patient
             else None
         ),
+        upcoming_appointment=upcoming_appointment,
     )
 
 

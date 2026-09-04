@@ -40,9 +40,9 @@
                 <td class="small">{{ a.reason }}</td>
                 <td>
                   {% if a.status == 'pending' %}
-                    <span class="badge text-bg-warning">Pending</span>
+                    <span class="badge text-bg-warning"><i class="bi bi-clock-history me-1"></i>Pending Review</span>
                   {% else %}
-                    <span class="badge text-bg-success">Confirmed</span>
+                    <span class="badge text-bg-success"><i class="bi bi-patch-check-fill me-1"></i>Approved & Confirmed</span>
                   {% endif %}
                 </td>
                 <td class="text-end text-nowrap">
@@ -51,7 +51,7 @@
                       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                       <input type="hidden" name="appointment_id" value="{{ a.id }}">
                       <input type="hidden" name="action" value="confirm">
-                      <button type="submit" class="btn btn-sm btn-success">Confirm</button>
+                      <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-lg me-1"></i>Approve Appointment</button>
                     </form>
                   {% endif %}
                   {% if a.status in ['pending', 'confirmed'] %}
