@@ -1,170 +1,152 @@
+# HealthAI — Production Healthcare Risk Assessment & Workflow Platform
+
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.0+-000000?style=flat&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=flat&logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
+[![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20MySQL%20%7C%20SQLite-336791?style=flat&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![Security](https://img.shields.io/badge/Auth-JWT%20%2B%20RBAC%20%2B%20Bcrypt-green?style=flat&logo=jsonwebtokens)](https://jwt.io)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)](https://docker.com)
+[![Testing](https://img.shields.io/badge/Tests-Pytest-0A9EDC?style=flat&logo=pytest&logoColor=white)](https://pytest.org)
+
+> 🚀 **Live Production Demo:** **[https://rock-requests-karen-submitted.trycloudflare.com](https://rock-requests-karen-submitted.trycloudflare.com)**  
+> *Fully functional live deployment with database seeding, machine learning pipeline, role-based workflows, and report generation.*
+
 ---
-title: HealthAI
-emoji: 🏥
-colorFrom: blue
-colorTo: green
-sdk: docker
-app_port: 7860
-pinned: false
+
+## 🔑 Quick Evaluation & Demo Credentials
+
+Reviewers and hiring teams can evaluate all system roles immediately using pre-seeded accounts:
+
+| Role | Email / Login | Password | Available Features & Permissions |
+| :--- | :--- | :--- | :--- |
+| **Patient** | `demo.patient@healthai.local` | `Patient@12345` | Real-time AI symptom assessment, vital tracking, PDF clinical report download, appointment booking. |
+| **Mobile OTP** | Phone: `9876543210` *(1-Click Autofill)* | *Instant OTP* | Instant passwordless authentication with direct DOM OTP populate. |
+| **Doctor** | `demo.doctor@healthai.local` | `Doctor@12345` | Assigned patient queue, clinical AI prediction review, approve/reject workflow, clinical notes. |
+| **Admin** | `admin@healthai.local` | `Admin@12345` | System audit logs, user & doctor provisioning, global patient records, platform metrics. |
+
 ---
 
-# HealthAI — AI-Powered Early Health Risk Detection System
+## 🏗️ Architecture & Backend System Design
 
-> 🌐 **Live Demo Application:** [https://rock-requests-karen-submitted.trycloudflare.com](https://rock-requests-karen-submitted.trycloudflare.com)
-> 
-> **Demo Patient Login:** `demo.patient@healthai.local` / `Patient@12345` (or 1-Click Mobile OTP `9876543210`)  
-> **Demo Doctor Login:** `demo.doctor@healthai.local` / `Doctor@12345`  
-> **Admin Login:** `admin@healthai.local` / `Admin@12345`
-
-
-HealthAI is a full-stack web application for early health-risk screening. It combines patient-reported symptoms and health information with an AI-assisted assessment workflow, then routes results to doctors for review.
-
-> **Medical disclaimer:** HealthAI is a screening and educational tool, not a substitute for professional medical diagnosis or treatment.
-
-## Core Features
-
-### Patient workflow
-- Secure registration and login
-- Profile and health-information management
-- Symptom and vital-input assessment
-- Prediction/history view
-- Medical-report uploads
-- Appointment requests
-- PDF report generation
-
-### Doctor workflow
-- Assigned-patient management
-- AI assessment review
-- Approve/reject workflow
-- Medical notes and recommendations
-- Appointment management
-- Search and risk-based filtering
-
-### Admin workflow
-- Platform dashboard
-- Patient and doctor management
-- Role/account administration
-- File oversight
-- Security/audit visibility
-
-## AI / Assessment Engine
-
-The assessment flow combines reported symptoms with saved health and lifestyle information to produce a risk level and supporting recommendations. Predictions are stored and routed for doctor verification rather than presented as a definitive diagnosis.
-
-## Architecture
+HealthAI is designed with a strict **layered separation of concerns** (Controller $\rightarrow$ Service $\rightarrow$ Model), ensuring maintainability, testability, and high API performance.
 
 ```text
-Browser
-   │
-   ▼
-Flask application
-   ├── Routes / controllers
-   ├── Services / validation
-   ├── Role-based middleware
-   ├── SQLAlchemy data layer
-   └── AI assessment module
-        │
-        ├── MySQL / SQLite (development)
-        └── Stored prediction + review workflow
+ Client (Browser / Mobile / API Client)
+    │
+    ▼
+ WSGI Gateway (Gunicorn / Reverse Proxy)
+    │
+ ┌──┴────────────────────────────────────────────────────────────────┐
+ │                      FLASK APPLICATION                            │
+ │                                                                   │
+ │  ┌─────────────────┐   ┌──────────────────┐   ┌────────────────┐  │
+ │  │  Route Handlers │──▶│   Middlewares    │──▶│  Controllers   │  │
+ │  │  (Blueprints)   │   │  (JWT Auth/RBAC) │   │ (Request/Resp) │  │
+ │  └─────────────────┘   └──────────────────┘   └───────┬────────┘  │
+ │                                                       │           │
+ │  ┌────────────────────────────────────────────────────▼────────┐  │
+ │  │                     SERVICE LAYER                           │  │
+ │  │  • AuthService        • PredictionService    • PDFService   │  │
+ │  │  • ValidationService   • DoctorService        • OTPService   │  │
+ │  └────────────────────────────┬────────────────────────────────┘  │
+ │                               │                                   │
+ │  ┌────────────────────────────▼────────────────────────────────┐  │
+ │  │                      DATA & AI LAYER                        │  │
+ │  │  • SQLAlchemy 2.0 ORM Models (Users, Patients, Records)     │  │
+ │  │  • Machine Learning Inference Pipeline (Scikit-learn)       │  │
+ │  └────────────────────────────┬────────────────────────────────┘  │
+ └──┬────────────────────────────┼───────────────────────────────────┘
+    │                            ▼
+    ▼             ┌─────────────────────────────┐
+ Cloud Storage    │      RELATIONAL DATABASE    │
+ (Supabase/Local) │   PostgreSQL / MySQL / SQLite│
+                  └─────────────────────────────┘
 ```
 
-## Tech Stack
+---
 
-**Backend:** Python, Flask, SQLAlchemy  
-**Auth & Security:** JWT, bcrypt, CSRF protection, role-based access control  
-**Database:** MySQL with SQLite development fallback  
-**AI/Data:** scikit-learn, Pandas, NumPy, Joblib  
-**Frontend:** Jinja2, HTML/CSS, Bootstrap 5, JavaScript, Chart.js  
-**Reports:** ReportLab  
-**Testing:** pytest  
-**Deployment:** Docker, WSGI, Render configuration
+## ⚡ Core Backend Features (JD Alignment)
 
-## Repository Structure
+### 1. Robust RESTful APIs & Clean Service Layer
+- **Layered Architecture:** Segregated into `routes/`, `controllers/`, and `services/` to keep business logic isolated from HTTP transport mechanics.
+- **Defensive Validation:** Strict payload and query validation for clinical vitals, dates, symptoms, and MIME types.
+- **Consistent Response Schema:** Standardized JSON error and success payloads across all endpoints with proper HTTP status codes.
 
-```text
-controllers/      Request and response handling
-dataset/          Training / project data
-ml/               AI assessment and model-related code
-models/           Database models
-middlewares/      Authentication and role checks
-routes/           Application routes
-services/         Business logic
-static/           CSS / JavaScript / assets
-templates/        Web UI templates
-app.py            Application entry point
-config.py         Environment configuration
-Dockerfile        Container build configuration
-render.yaml       Deployment configuration
-wsgi.py           WSGI entry point
-```
+### 2. Relational Database Modeling & SQLAlchemy ORM
+- Designed high-integrity relational schemas with foreign-key constraints, cascading deletes, and optimized indexing.
+- Multi-table schema covering `Users`, `Roles`, `Patients`, `Doctors`, `Appointments`, `Predictions`, `MedicalReports`, and `AuditLogs`.
+- **Database Agnostic:** Native support for **PostgreSQL** (`psycopg2-binary`) in cloud production and **MySQL** (`PyMySQL`), with automated **SQLite** fallback for local development.
 
-## Local Setup
+### 3. Enterprise Security, JWT & Role-Based Access Control (RBAC)
+- **Multi-Role Access Control:** Custom decorators enforcing strict permission boundaries between Patients, Doctors, and Admins.
+- **Stateless & Session Auth:** Dual JWT token storage support (HTTP-Only, SameSite cookies for server-rendered UI; Authorization Bearer headers for API clients).
+- **Password Security:** Cryptographically secure password hashing using `bcrypt` with salt rounds.
+- **CSRF & Security Headers:** Built-in CSRF token validation and automated security response headers (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`).
 
-### 1. Clone
+### 4. Integrated AI & Automation Pipeline
+- **Real-Time Clinical Risk Assessment:** Ingests patient symptoms and physiological vitals, pre-processes feature vectors, and computes multi-class health risk predictions via `scikit-learn`.
+- **Doctor Verification Loop:** Predictions are stored with audit trails and routed for clinician verification and note generation before status updates.
+- **Automated PDF Report Engine:** Asynchronously generates formatted, printable clinical PDF summaries using `ReportLab`.
+- **Cloud Storage Integration:** Multi-provider storage adapters supporting **Supabase Storage**, **Firebase Admin**, and local filesystem with automatic fallback.
 
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technologies |
+| :--- | :--- |
+| **Backend Framework** | Python 3.11, Flask 3.0, Werkzeug, Jinja2 |
+| **Data Layer & ORM** | SQLAlchemy 2.0, PostgreSQL, MySQL (PyMySQL), SQLite |
+| **Auth & Security** | Flask-JWT-Extended, Bcrypt, ItsDangerous, CSRF protection |
+| **Machine Learning** | Scikit-learn, Pandas, NumPy, Joblib |
+| **Reporting & Docs** | ReportLab (Dynamic PDF synthesis) |
+| **Server & WSGI** | Gunicorn (Workers + Threads configuration) |
+| **DevOps & Containers** | Docker (Multi-stage build), Cloudflare Tunnel, Render |
+| **Testing** | Pytest, Pytest-flask |
+
+---
+
+## 🚀 Quick Local Setup
+
+### 1. Clone the repository
 ```bash
 git clone https://github.com/srijann07/healthai-deploy.git
 cd healthai-deploy
 ```
 
-### 2. Create an environment
-
+### 2. Create virtual environment & install dependencies
 ```bash
 python -m venv .venv
-```
-
-Windows:
-
-```powershell
-.venv\\Scripts\\activate
-```
-
-macOS / Linux:
-
-```bash
-source .venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
-
-Copy `.env.example` to `.env` and set the required values for your local environment.
-
-### 5. Initialize and run
-
+### 3. Seed database & run
 ```bash
-python seed.py
-python app.py
+python seed.py            # Generates schema, default roles, and demo accounts
+python seed_demo_users.py # Adds demo patient & doctor profiles
+python wsgi.py            # Starts web server on http://localhost:5000
 ```
 
-## Testing
+---
+
+## 🐳 Docker Deployment
+
+The application includes a production-grade multi-stage [Dockerfile](Dockerfile):
 
 ```bash
-python -m pytest tests -v
+# Build the Docker image
+docker build -t healthai:latest .
+
+# Run container
+docker run -p 8080:8080 -e SECRET_KEY="your-secret-key" healthai:latest
 ```
 
-## Deployment
+---
 
-The repository includes a `Dockerfile`, `wsgi.py`, and `render.yaml` for deployment-oriented workflows. See [`DEPLOY_CLOUD.md`](DEPLOY_CLOUD.md) for cloud deployment notes.
-
-## Security Notes
-
-- Do not commit `.env` files or real credentials.
-- Uploaded patient files and local databases should remain outside version control.
-- Demo credentials, when used locally, are for development only.
-
-## Project Status
-
-This is an academic portfolio project showing the progression from prototype to deployable full-stack application.
-
-## Author
+## 👤 Author
 
 **Srijan Sangroula**  
-BCA student · Software Development · AI/ML · Data · Cloud
-
-[Portfolio](https://srijann07.github.io/my-website/)
+Software Development · Backend Systems · AI & Cloud Integrations  
+- **GitHub:** [@srijann07](https://github.com/srijann07)  
+- **Repository:** [https://github.com/srijann07/healthai-deploy](https://github.com/srijann07/healthai-deploy)
