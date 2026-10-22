@@ -10,6 +10,13 @@ pinned: false
 
 # HealthAI — AI-Powered Early Health Risk Detection System
 
+> 🌐 **Live Demo Application:** [https://rock-requests-karen-submitted.trycloudflare.com](https://rock-requests-karen-submitted.trycloudflare.com)
+> 
+> **Demo Patient Login:** `demo.patient@healthai.local` / `Patient@12345` (or 1-Click Mobile OTP `9876543210`)  
+> **Demo Doctor Login:** `demo.doctor@healthai.local` / `Doctor@12345`  
+> **Admin Login:** `admin@healthai.local` / `Admin@12345`
+
+
 HealthAI is a full-stack web application for early health-risk screening. It combines patient-reported symptoms and health information with an AI-assisted assessment workflow, then routes results to doctors for review.
 
 > **Medical disclaimer:** HealthAI is a screening and educational tool, not a substitute for professional medical diagnosis or treatment.
