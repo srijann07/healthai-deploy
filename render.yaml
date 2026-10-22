@@ -2,7 +2,7 @@ services:
   - type: web
     name: healthai
     env: python
-    buildCommand: pip install -r requirements.txt && python seed.py
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 4 wsgi:application
     plan: free
     autoDeploy: true
@@ -14,9 +14,7 @@ services:
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: STORAGE_PROVIDER
-        value: supabase
-      - key: SUPABASE_STORAGE_BUCKET
-        value: medical-reports
+        value: local
       - key: DATABASE_URL
         sync: false
       - key: SUPABASE_URL
