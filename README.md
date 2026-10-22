@@ -8,7 +8,8 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)](https://docker.com)
 [![Testing](https://img.shields.io/badge/Tests-Pytest-0A9EDC?style=flat&logo=pytest&logoColor=white)](https://pytest.org)
 
-> 🚀 **Live Production Demo:** **[https://rock-requests-karen-submitted.trycloudflare.com](https://rock-requests-karen-submitted.trycloudflare.com)**  
+> 🚀 **Live Production Deployment (Render 24/7):** **[https://healthai-backend.onrender.com](https://healthai-backend.onrender.com)**  
+> 🌐 **Live Mirror:** **[https://rock-requests-karen-submitted.trycloudflare.com](https://rock-requests-karen-submitted.trycloudflare.com)**  
 > *Fully functional live deployment with database seeding, machine learning pipeline, role-based workflows, and report generation.*
 
 ---
