@@ -1,3 +1,13 @@
+---
+title: HealthAI
+emoji: 🏥
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # HealthAI — AI-Powered Early Health Risk Detection System
 
 HealthAI is a full-stack web application for early health-risk screening. It combines patient-reported symptoms and health information with an AI-assisted assessment workflow, then routes results to doctors for review.

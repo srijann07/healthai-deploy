@@ -1,10 +1,10 @@
-# Multi-stage Dockerfile for HealthAI Cloud Deployment
+# Multi-stage Dockerfile for HealthAI Cloud Deployment (Hugging Face Spaces, Render, Cloud Run)
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     FLASK_ENV=production \
-    PORT=8080
+    PORT=7860
 
 WORKDIR /app
 
@@ -22,11 +22,15 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application source
 COPY . .
 
-# Ensure upload and ML directories exist
-RUN mkdir -p uploads ml/artifacts
+# Set up user 1000 for Hugging Face Spaces compatibility and runtime directories
+RUN useradd -m -u 1000 user && \
+    mkdir -p uploads ml/artifacts && \
+    chown -R user:user /app
 
-# Expose port (Cloud Run defaults to 8080, Render maps dynamic PORT)
-EXPOSE 8080
+USER user
+
+# Expose port (7860 default for Hugging Face Spaces)
+EXPOSE 7860
 
 # Production startup with Gunicorn
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 2 --threads 4 --timeout 120 wsgi:application"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-7860} --workers 2 --threads 4 --timeout 120 wsgi:application"]
