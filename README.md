@@ -8,8 +8,8 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)](https://docker.com)
 [![Testing](https://img.shields.io/badge/Tests-Pytest-0A9EDC?style=flat&logo=pytest&logoColor=white)](https://pytest.org)
 
-> 🚀 **Live Production Deployment (Render 24/7):** **[https://healthai-backend.onrender.com](https://healthai-backend.onrender.com)**  
-> 🌐 **Live Mirror:** **[https://rock-requests-karen-submitted.trycloudflare.com](https://rock-requests-karen-submitted.trycloudflare.com)**  
+> 🚀 **Live Production Deployment (Render 24/7):** **[https://healthai-deploy.onrender.com](https://healthai-deploy.onrender.com)**  
+> 🌐 **Live Direct Mirror:** **[https://rock-requests-karen-submitted.trycloudflare.com](https://rock-requests-karen-submitted.trycloudflare.com)**  
 > *Fully functional live deployment with database seeding, machine learning pipeline, role-based workflows, and report generation.*
 
 ---
@@ -22,7 +22,7 @@ Reviewers and hiring teams can evaluate all system roles immediately using pre-s
 | :--- | :--- | :--- | :--- |
 | **Patient** | `demo.patient@healthai.local` | `Patient@12345` | Real-time AI symptom assessment, vital tracking, PDF clinical report download, appointment booking. |
 | **Mobile OTP** | Phone: `9876543210` *(1-Click Autofill)* | *Instant OTP* | Instant passwordless authentication with direct DOM OTP populate. |
-| **Doctor** | `demo.doctor@healthai.local` | `Doctor@12345` | Assigned patient queue, clinical AI prediction review, approve/reject workflow, clinical notes. |
+| **Doctor** | `dr.sharma@healthai.local` *(or `demo.doctor@healthai.local`)* | `Doctor@12345` | Assigned patient queue, clinical AI prediction review, approve/reject workflow, clinical notes. |
 | **Admin** | `admin@healthai.local` | `Admin@12345` | System audit logs, user & doctor provisioning, global patient records, platform metrics. |
 
 ---

@@ -12,11 +12,13 @@ with application.app_context():
     try:
         db.create_all()
         Role.seed_defaults()
-        # Seed default accounts if admin does not exist
         from models.user import User
         if not User.query.filter_by(email="admin@healthai.local").first():
             import seed
             seed.seed()
+        if not User.query.filter_by(email="demo.patient@healthai.local").first():
+            import seed_demo_users
+            seed_demo_users.seed()
     except Exception as exc:
         application.logger.warning("Startup DB initialization skipped: %s", exc)
 
