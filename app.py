@@ -10,7 +10,7 @@ import os
 
 from flask import render_template, request
 
-from config import get_config
+from config import BASE_DIR, get_config
 from extensions import db, jwt
 from middlewares.auth_middleware import get_current_user, register_jwt_handlers
 from routes import register_routes
@@ -20,7 +20,25 @@ def create_app(env_name: str | None = None):
     from flask import Flask
 
     app = Flask(__name__)
-    app.config.from_object(get_config(env_name))
+    cfg = get_config(env_name)
+    app.config.from_object(cfg)
+
+    # Resilient Database Connection: Verify remote database before binding
+    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    if db_uri and not db_uri.startswith("sqlite"):
+        try:
+            import sqlalchemy as sa
+            connect_args = {}
+            if "postgres" in db_uri:
+                connect_args["connect_timeout"] = 3
+            test_engine = sa.create_engine(db_uri, connect_args=connect_args)
+            with test_engine.connect() as conn:
+                pass
+            test_engine.dispose()
+        except Exception as exc:
+            app.logger.warning("Remote database connection failed (%s). Falling back to SQLite.", exc)
+            app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "healthai_dev.db")
+            app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
 
     # --- Extensions ---------------------------------------------------
     db.init_app(app)
